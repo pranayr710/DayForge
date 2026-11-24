@@ -6,18 +6,32 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   interactive?: boolean;
 }
 
+/** Track the pointer so the glass surface can paint a soft spotlight. */
+function trackSpotlight(e: React.PointerEvent<HTMLDivElement>) {
+  const el = e.currentTarget;
+  const rect = el.getBoundingClientRect();
+  el.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+  el.style.setProperty('--my', `${e.clientY - rect.top}px`);
+}
+
 export function Card({
   className,
   elevated = false,
   interactive = false,
+  onPointerMove,
   ...props
 }: CardProps) {
   return (
     <div
+      onPointerMove={(e) => {
+        trackSpotlight(e);
+        onPointerMove?.(e);
+      }}
       className={cn(
-        'rounded-2xl transition-all duration-200 ease-out',
+        'df-spotlight rounded-[22px] transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
         elevated ? 'df-glass-elevated' : 'df-glass',
-        interactive && 'hover:border-[var(--df-border-strong)] hover:-translate-y-[1px]',
+        interactive &&
+          'hover:-translate-y-0.5 hover:shadow-[inset_0_1px_0_var(--df-specular),0_24px_60px_-28px_rgba(109,100,240,0.55)]',
         className
       )}
       {...props}
@@ -29,7 +43,7 @@ export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDiv
   return (
     <div
       className={cn(
-        'flex items-center justify-between gap-3 px-4 pt-4 pb-2 sm:px-5 sm:pt-5',
+        'flex items-center justify-between gap-3 px-4 pt-4 pb-2.5 sm:px-5 sm:pt-5',
         className
       )}
       {...props}
@@ -41,7 +55,7 @@ export function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHead
   return (
     <h3
       className={cn(
-        'text-sm font-semibold tracking-tight text-[var(--df-text)]',
+        'text-[13.5px] font-semibold tracking-[-0.01em] text-[var(--df-text)]',
         className
       )}
       {...props}

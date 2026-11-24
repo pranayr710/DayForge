@@ -3,7 +3,10 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import {
   Check,
   ExternalLink,
+  Flag,
   FolderGit2,
+  Globe,
+  ListChecks,
   Plus,
   Star,
   Trash2,
@@ -23,7 +26,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { FieldLabel, Input, Select, Textarea } from '@/components/ui/FormControls';
 import { Modal } from '@/components/ui/Modal';
-import { ProgressBar } from '@/components/ui/Primitives';
+import { ProgressBar, ProgressRing, Reveal } from '@/components/ui/Primitives';
 import type { ProjectCategory, ProjectItem, StageStatus } from '@/types';
 
 const PROJECT_CATEGORIES: ProjectCategory[] = [
@@ -31,6 +34,34 @@ const PROJECT_CATEGORIES: ProjectCategory[] = [
   'Backend / Distributed Systems',
   'AI/ML Research',
 ];
+
+/** Presentation-only colour accents per project category. */
+const CATEGORY_STYLE: Record<
+  ProjectCategory,
+  { chip: string; dot: string; line: string; text: string }
+> = {
+  'AI Engineering': {
+    chip: 'border-[#8F87FA]/35 bg-[linear-gradient(145deg,rgba(109,100,240,0.25),rgba(167,139,250,0.08))] text-[var(--df-accent-secondary)] shadow-[0_10px_26px_-12px_rgba(109,100,240,0.9)]',
+    dot: 'bg-[#8F87FA] shadow-[0_0_8px_rgba(143,135,250,0.8)]',
+    line: 'bg-[linear-gradient(90deg,transparent,rgba(143,135,250,0.8),transparent)]',
+    text: 'text-[var(--df-accent-secondary)]',
+  },
+  'Backend / Distributed Systems': {
+    chip: 'border-[#5EE7F7]/35 bg-[linear-gradient(145deg,rgba(94,231,247,0.20),rgba(56,189,248,0.06))] text-[var(--df-cyan)] shadow-[0_10px_26px_-12px_rgba(94,231,247,0.7)]',
+    dot: 'bg-[#5EE7F7] shadow-[0_0_8px_rgba(94,231,247,0.8)]',
+    line: 'bg-[linear-gradient(90deg,transparent,rgba(94,231,247,0.75),transparent)]',
+    text: 'text-[var(--df-cyan)]',
+  },
+  'AI/ML Research': {
+    chip: 'border-[#F59AC8]/35 bg-[linear-gradient(145deg,rgba(245,154,200,0.20),rgba(167,139,250,0.08))] text-[var(--df-pink)] shadow-[0_10px_26px_-12px_rgba(245,154,200,0.7)]',
+    dot: 'bg-[#F59AC8] shadow-[0_0_8px_rgba(245,154,200,0.8)]',
+    line: 'bg-[linear-gradient(90deg,transparent,rgba(245,154,200,0.75),transparent)]',
+    text: 'text-[var(--df-pink)]',
+  },
+};
+
+const ACTIVE_PILL =
+  'border-transparent bg-[linear-gradient(135deg,#7B72F6,#5145C8)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_8px_20px_-6px_rgba(109,100,240,0.85)]';
 
 export default function ProjectsPage() {
   const projects = useLiveQuery(() => db.projects.toArray(), []) ?? [];
@@ -126,286 +157,375 @@ export default function ProjectsPage() {
         title="Projects"
         subtitle="Track engineering builds, milestones, documentation, and testing status"
         actions={
-          <Button variant="primary" size="sm" onClick={openNewModal}>
+          <Button variant="primary" size="sm" className="rounded-full" onClick={openNewModal}>
             <Plus className="h-4 w-4" />
             New Project
           </Button>
         }
       />
 
-      <div className="flex flex-wrap gap-1.5">
-        {(['All', ...PROJECT_CATEGORIES] as const).map((cat) => (
-          <button
-            key={cat}
-            type="button"
-            onClick={() => setCatFilter(cat)}
-            className={cn(
-              'rounded-md border px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer',
-              catFilter === cat
-                ? 'border-[#635BDB] bg-[#635BDB]/15 text-[#8178F5]'
-                : 'border-[var(--df-border)] text-[var(--df-text-muted)] hover:text-[var(--df-text)]'
-            )}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+      <Reveal delay={0.03}>
+        <div className="flex flex-wrap gap-1.5">
+          {(['All', ...PROJECT_CATEGORIES] as const).map((cat) => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setCatFilter(cat)}
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-300 cursor-pointer',
+                catFilter === cat
+                  ? ACTIVE_PILL
+                  : 'border-[var(--df-border)] bg-[var(--df-inset)] text-[var(--df-text-muted)] backdrop-blur-md hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)] hover:text-[var(--df-text)]'
+              )}
+            >
+              {cat !== 'All' && (
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'h-1.5 w-1.5 rounded-full',
+                    catFilter === cat ? 'bg-white shadow-[0_0_6px_white]' : CATEGORY_STYLE[cat].dot
+                  )}
+                />
+              )}
+              {cat}
+            </button>
+          ))}
+        </div>
+      </Reveal>
 
       {filtered.length === 0 ? (
-        <EmptyState
-          icon={FolderGit2}
-          title="No projects tracked yet"
-          description="Add your AI Engineering, Backend / Distributed Systems, or AI/ML Research projects to track tasks and milestones."
-          actionLabel="Create First Project"
-          onAction={openNewModal}
-        />
+        <Reveal delay={0.08}>
+          <EmptyState
+            icon={FolderGit2}
+            title="No projects tracked yet"
+            description="Add your AI Engineering, Backend / Distributed Systems, or AI/ML Research projects to track tasks and milestones."
+            actionLabel="Create First Project"
+            onAction={openNewModal}
+          />
+        </Reveal>
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {filtered.map((proj) => {
+          {filtered.map((proj, projIdx) => {
             const totalItems = proj.tasks.length + proj.milestones.length;
             const doneItems =
               proj.tasks.filter((t) => t.completed).length +
               proj.milestones.filter((m) => m.completed).length;
             const progress =
               totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+            const accent = CATEGORY_STYLE[proj.category] ?? CATEGORY_STYLE['AI Engineering'];
+            const milestonesDone = proj.milestones.filter((m) => m.completed).length;
+            const tasksDone = proj.tasks.filter((t) => t.completed).length;
 
             return (
-              <Card
-                key={proj.id}
-                className={cn(proj.isPrimary && 'border-[#635BDB]')}
-              >
-                <CardContent className="pt-5 space-y-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-base font-semibold text-[var(--df-text)]">
-                          {proj.name}
-                        </h3>
-                        {proj.isPrimary && (
-                          <Badge tone="accent">
-                            <Star className="h-3 w-3" /> Primary Active
-                          </Badge>
-                        )}
+              <Reveal key={proj.id} delay={Math.min(0.06 + projIdx * 0.05, 0.3)}>
+                <Card
+                  elevated={proj.isPrimary}
+                  className={cn(
+                    'relative h-full',
+                    proj.isPrimary &&
+                      'df-live-border shadow-[0_0_60px_-24px_rgba(109,100,240,0.9)]'
+                  )}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'pointer-events-none absolute inset-x-8 top-0 h-px',
+                      accent.line
+                    )}
+                  />
+                  <CardContent className="pt-5 space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <span
+                          aria-hidden="true"
+                          className={cn(
+                            'flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border',
+                            accent.chip
+                          )}
+                        >
+                          <FolderGit2 className="h-5 w-5" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className={cn('df-eyebrow', accent.text)}>
+                            {proj.isPrimary ? 'Now building' : 'Project'}
+                          </p>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                            <h3 className="text-base font-semibold tracking-[-0.02em] text-[var(--df-text)] break-words">
+                              {proj.name}
+                            </h3>
+                            {proj.isPrimary && (
+                              <Badge tone="accent">
+                                <Star className="h-3 w-3 fill-current" /> Primary Active
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <p className="mt-1 text-xs text-[var(--df-text-muted)]">
-                        {proj.description || 'No description provided.'}
-                      </p>
-                    </div>
 
-                    <div className="flex items-center gap-1 shrink-0">
-                      {!proj.isPrimary && (
+                      <div className="flex items-center gap-1 shrink-0">
+                        {!proj.isPrimary && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-full hover:text-[var(--df-warning)]"
+                            onClick={() =>
+                              void updateProjectTasksAndMilestones(proj.id, {
+                                isPrimary: true,
+                              })
+                            }
+                            title="Set as primary active project"
+                          >
+                            <Star className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full"
+                          onClick={() => openEditModal(proj)}
+                        >
+                          Edit
+                        </Button>
                         <Button
                           variant="ghost"
-                          size="sm"
+                          size="icon"
+                          onClick={() => setDeleteTarget(proj)}
+                          aria-label={`Delete ${proj.name}`}
+                          className="rounded-full text-[var(--df-error)] hover:bg-[#F06A6A]/10"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <p className="text-xs leading-relaxed text-[var(--df-text-muted)]">
+                      {proj.description || 'No description provided.'}
+                    </p>
+
+                    <div className="flex flex-wrap gap-1.5 text-[11px]">
+                      <Badge tone="info">{proj.category}</Badge>
+                      <Badge tone={proj.documentationStatus === 'completed' ? 'success' : 'neutral'}>
+                        Docs: {proj.documentationStatus.replace('_', ' ')}
+                      </Badge>
+                      <Badge tone={proj.testingStatus === 'completed' ? 'success' : 'neutral'}>
+                        Tests: {proj.testingStatus.replace('_', ' ')}
+                      </Badge>
+                      {proj.targetCompletionDate && (
+                        <Badge tone="warning" className="font-mono-tabular">
+                          Target: {formatShortDateLabel(proj.targetCompletionDate)}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {proj.techStack.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {proj.techStack.map((tech) => (
+                          <span
+                            key={tech}
+                            className="inline-flex items-center gap-1 rounded-full border border-[var(--df-border-strong)] bg-[var(--df-inset)] px-2.5 py-1 font-mono-tabular text-[10.5px] leading-none text-[var(--df-text-muted)] transition-colors hover:border-[#8F87FA]/50 hover:text-[var(--df-text)]"
+                          >
+                            <span aria-hidden="true" className={cn('h-1 w-1 rounded-full', accent.dot)} />
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-4 rounded-2xl df-well px-3.5 py-3">
+                      <ProgressRing
+                        value={progress}
+                        size={64}
+                        stroke={6}
+                        label={`${proj.name} progress`}
+                      >
+                        <span className="font-mono-tabular text-[13px] font-semibold tracking-[-0.03em] text-[var(--df-text)]">
+                          {progress}%
+                        </span>
+                      </ProgressRing>
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-1.5 flex items-baseline justify-between gap-2 text-xs font-mono-tabular">
+                          <span className="text-[var(--df-text-muted)]">
+                            Progress ({doneItems}/{totalItems} items)
+                          </span>
+                          <span className="font-semibold text-[var(--df-text)]">{progress}%</span>
+                        </div>
+                        <ProgressBar value={progress} />
+                      </div>
+                    </div>
+
+                    {/* Milestones */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="df-eyebrow inline-flex items-center gap-1.5">
+                          <Flag className="h-3 w-3 text-[var(--df-accent-secondary)]" aria-hidden="true" />
+                          Milestones
+                        </p>
+                        {proj.milestones.length > 0 && (
+                          <span className="rounded-full border border-[var(--df-border-strong)] bg-[var(--df-inset)] px-2 py-0.5 font-mono-tabular text-[10px] text-[var(--df-text-muted)]">
+                            {milestonesDone}/{proj.milestones.length}
+                          </span>
+                        )}
+                      </div>
+                      {proj.milestones.map((m) => (
+                        <button
+                          key={m.id}
+                          type="button"
                           onClick={() =>
                             void updateProjectTasksAndMilestones(proj.id, {
-                              isPrimary: true,
+                              milestones: proj.milestones.map((item) =>
+                                item.id === m.id ? { ...item, completed: !item.completed } : item
+                              ),
                             })
                           }
-                          title="Set as primary active project"
+                          className="group flex w-full items-center gap-2.5 rounded-xl df-well px-3 py-2 text-left text-xs text-[var(--df-text)] transition-all duration-300 hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)] cursor-pointer"
                         >
-                          <Star className="h-3.5 w-3.5" />
-                        </Button>
-                      )}
-                      <Button variant="outline" size="sm" onClick={() => openEditModal(proj)}>
-                        Edit
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeleteTarget(proj)}
-                        aria-label={`Delete ${proj.name}`}
-                        className="text-[#E05252]"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1.5 text-[11px]">
-                    <Badge tone="info">{proj.category}</Badge>
-                    <Badge tone={proj.documentationStatus === 'completed' ? 'success' : 'neutral'}>
-                      Docs: {proj.documentationStatus.replace('_', ' ')}
-                    </Badge>
-                    <Badge tone={proj.testingStatus === 'completed' ? 'success' : 'neutral'}>
-                      Tests: {proj.testingStatus.replace('_', ' ')}
-                    </Badge>
-                    {proj.targetCompletionDate && (
-                      <Badge tone="warning" className="font-mono-tabular">
-                        Target: {formatShortDateLabel(proj.targetCompletionDate)}
-                      </Badge>
-                    )}
-                  </div>
-
-                  {proj.techStack.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {proj.techStack.map((tech) => (
-                        <span
-                          key={tech}
-                          className="rounded border border-[var(--df-border)] bg-[var(--df-bg)] px-2 py-0.5 text-[11px] text-[var(--df-text-muted)]"
-                        >
-                          {tech}
-                        </span>
+                          <span
+                            className={cn(
+                              'flex h-4 w-4 shrink-0 items-center justify-center rounded-md border transition-all duration-300',
+                              m.completed
+                                ? 'border-[#22C55E] bg-[linear-gradient(135deg,#22C55E,#16A34A)] text-white shadow-[0_0_12px_rgba(34,197,94,0.7)]'
+                                : 'border-[var(--df-border-strong)] group-hover:border-[#8F87FA] group-hover:shadow-[0_0_10px_rgba(143,135,250,0.6)]'
+                            )}
+                          >
+                            {m.completed && <Check className="h-3 w-3" strokeWidth={3} />}
+                          </span>
+                          <span className={cn('min-w-0 break-words', m.completed && 'line-through text-[var(--df-text-muted)]')}>
+                            {m.title}
+                          </span>
+                        </button>
                       ))}
-                    </div>
-                  )}
-
-                  <div>
-                    <div className="mb-1 flex justify-between text-xs font-mono-tabular">
-                      <span className="text-[var(--df-text-muted)]">
-                        Progress ({doneItems}/{totalItems} items)
-                      </span>
-                      <span className="text-[var(--df-text)]">{progress}%</span>
-                    </div>
-                    <ProgressBar value={progress} />
-                  </div>
-
-                  {/* Milestones */}
-                  <div className="space-y-1.5">
-                    <p className="text-xs font-semibold text-[var(--df-text)]">Milestones</p>
-                    {proj.milestones.map((m) => (
-                      <button
-                        key={m.id}
-                        type="button"
-                        onClick={() =>
+                      <form
+                        className="flex gap-1.5"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const val = (newMilestoneInput[proj.id] ?? '').trim();
+                          if (!val) return;
                           void updateProjectTasksAndMilestones(proj.id, {
-                            milestones: proj.milestones.map((item) =>
-                              item.id === m.id ? { ...item, completed: !item.completed } : item
-                            ),
-                          })
-                        }
-                        className="flex w-full items-center gap-2 rounded-lg border border-[var(--df-border)] bg-[var(--df-bg)] px-2.5 py-1.5 text-left text-xs cursor-pointer"
+                            milestones: [
+                              ...proj.milestones,
+                              { id: createId('pm'), title: val, completed: false },
+                            ],
+                          });
+                          setNewMilestoneInput((prev) => ({ ...prev, [proj.id]: '' }));
+                        }}
                       >
-                        <span
-                          className={cn(
-                            'flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border',
-                            m.completed
-                              ? 'border-[#16A34A] bg-[#16A34A] text-white'
-                              : 'border-[var(--df-text-muted)]/50'
-                          )}
-                        >
-                          {m.completed && <Check className="h-2.5 w-2.5" />}
-                        </span>
-                        <span className={cn(m.completed && 'line-through text-[var(--df-text-muted)]')}>
-                          {m.title}
-                        </span>
-                      </button>
-                    ))}
-                    <form
-                      className="flex gap-1.5"
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        const val = (newMilestoneInput[proj.id] ?? '').trim();
-                        if (!val) return;
-                        void updateProjectTasksAndMilestones(proj.id, {
-                          milestones: [
-                            ...proj.milestones,
-                            { id: createId('pm'), title: val, completed: false },
-                          ],
-                        });
-                        setNewMilestoneInput((prev) => ({ ...prev, [proj.id]: '' }));
-                      }}
-                    >
-                      <Input
-                        value={newMilestoneInput[proj.id] ?? ''}
-                        onChange={(e) =>
-                          setNewMilestoneInput((prev) => ({ ...prev, [proj.id]: e.target.value }))
-                        }
-                        placeholder="Add milestone..."
-                        className="h-8 text-xs"
-                      />
-                      <Button type="submit" size="sm" variant="secondary">
-                        Add
-                      </Button>
-                    </form>
-                  </div>
-
-                  {/* Tasks */}
-                  <div className="space-y-1.5">
-                    <p className="text-xs font-semibold text-[var(--df-text)]">Project Tasks</p>
-                    {proj.tasks.map((t) => (
-                      <button
-                        key={t.id}
-                        type="button"
-                        onClick={() =>
-                          void updateProjectTasksAndMilestones(proj.id, {
-                            tasks: proj.tasks.map((item) =>
-                              item.id === t.id ? { ...item, completed: !item.completed } : item
-                            ),
-                          })
-                        }
-                        className="flex w-full items-center gap-2 rounded-lg border border-[var(--df-border)] bg-[var(--df-bg)] px-2.5 py-1.5 text-left text-xs cursor-pointer"
-                      >
-                        <span
-                          className={cn(
-                            'flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded border',
-                            t.completed
-                              ? 'border-[#16A34A] bg-[#16A34A] text-white'
-                              : 'border-[var(--df-text-muted)]/50'
-                          )}
-                        >
-                          {t.completed && <Check className="h-2.5 w-2.5" />}
-                        </span>
-                        <span className={cn(t.completed && 'line-through text-[var(--df-text-muted)]')}>
-                          {t.title}
-                        </span>
-                      </button>
-                    ))}
-                    <form
-                      className="flex gap-1.5"
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        const val = (newTaskInput[proj.id] ?? '').trim();
-                        if (!val) return;
-                        void updateProjectTasksAndMilestones(proj.id, {
-                          tasks: [
-                            ...proj.tasks,
-                            { id: createId('pt'), title: val, completed: false },
-                          ],
-                        });
-                        setNewTaskInput((prev) => ({ ...prev, [proj.id]: '' }));
-                      }}
-                    >
-                      <Input
-                        value={newTaskInput[proj.id] ?? ''}
-                        onChange={(e) =>
-                          setNewTaskInput((prev) => ({ ...prev, [proj.id]: e.target.value }))
-                        }
-                        placeholder="Add project task..."
-                        className="h-8 text-xs"
-                      />
-                      <Button type="submit" size="sm" variant="secondary">
-                        Add
-                      </Button>
-                    </form>
-                  </div>
-
-                  {(proj.githubUrl || proj.deploymentUrl) && (
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {proj.githubUrl && (
-                        <a
-                          href={proj.githubUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 rounded-lg border border-[var(--df-border)] px-2.5 py-1 text-xs text-[var(--df-text)] hover:border-[#635BDB]"
-                        >
-                          GitHub <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
-                      {proj.deploymentUrl && (
-                        <a
-                          href={proj.deploymentUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 rounded-lg border border-[var(--df-border)] px-2.5 py-1 text-xs text-[var(--df-text)] hover:border-[#635BDB]"
-                        >
-                          Live URL <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
+                        <Input
+                          value={newMilestoneInput[proj.id] ?? ''}
+                          onChange={(e) =>
+                            setNewMilestoneInput((prev) => ({ ...prev, [proj.id]: e.target.value }))
+                          }
+                          placeholder="Add milestone..."
+                          className="h-8 text-xs"
+                        />
+                        <Button type="submit" size="sm" variant="secondary" className="rounded-full">
+                          <Plus className="h-3.5 w-3.5" />
+                          Add
+                        </Button>
+                      </form>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+
+                    <div className="df-hairline" />
+
+                    {/* Tasks */}
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="df-eyebrow inline-flex items-center gap-1.5">
+                          <ListChecks className="h-3 w-3 text-[var(--df-cyan)]" aria-hidden="true" />
+                          Project Tasks
+                        </p>
+                        {proj.tasks.length > 0 && (
+                          <span className="rounded-full border border-[var(--df-border-strong)] bg-[var(--df-inset)] px-2 py-0.5 font-mono-tabular text-[10px] text-[var(--df-text-muted)]">
+                            {tasksDone}/{proj.tasks.length}
+                          </span>
+                        )}
+                      </div>
+                      {proj.tasks.map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() =>
+                            void updateProjectTasksAndMilestones(proj.id, {
+                              tasks: proj.tasks.map((item) =>
+                                item.id === t.id ? { ...item, completed: !item.completed } : item
+                              ),
+                            })
+                          }
+                          className="group flex w-full items-center gap-2.5 rounded-xl df-well px-3 py-2 text-left text-xs text-[var(--df-text)] transition-all duration-300 hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)] cursor-pointer"
+                        >
+                          <span
+                            className={cn(
+                              'flex h-4 w-4 shrink-0 items-center justify-center rounded-md border transition-all duration-300',
+                              t.completed
+                                ? 'border-[#22C55E] bg-[linear-gradient(135deg,#22C55E,#16A34A)] text-white shadow-[0_0_12px_rgba(34,197,94,0.7)]'
+                                : 'border-[var(--df-border-strong)] group-hover:border-[#8F87FA] group-hover:shadow-[0_0_10px_rgba(143,135,250,0.6)]'
+                            )}
+                          >
+                            {t.completed && <Check className="h-3 w-3" strokeWidth={3} />}
+                          </span>
+                          <span className={cn('min-w-0 break-words', t.completed && 'line-through text-[var(--df-text-muted)]')}>
+                            {t.title}
+                          </span>
+                        </button>
+                      ))}
+                      <form
+                        className="flex gap-1.5"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          const val = (newTaskInput[proj.id] ?? '').trim();
+                          if (!val) return;
+                          void updateProjectTasksAndMilestones(proj.id, {
+                            tasks: [
+                              ...proj.tasks,
+                              { id: createId('pt'), title: val, completed: false },
+                            ],
+                          });
+                          setNewTaskInput((prev) => ({ ...prev, [proj.id]: '' }));
+                        }}
+                      >
+                        <Input
+                          value={newTaskInput[proj.id] ?? ''}
+                          onChange={(e) =>
+                            setNewTaskInput((prev) => ({ ...prev, [proj.id]: e.target.value }))
+                          }
+                          placeholder="Add project task..."
+                          className="h-8 text-xs"
+                        />
+                        <Button type="submit" size="sm" variant="secondary" className="rounded-full">
+                          <Plus className="h-3.5 w-3.5" />
+                          Add
+                        </Button>
+                      </form>
+                    </div>
+
+                    {(proj.githubUrl || proj.deploymentUrl) && (
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {proj.githubUrl && (
+                          <a
+                            href={proj.githubUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="group inline-flex items-center gap-1.5 rounded-full df-well px-3.5 py-1.5 text-xs font-medium text-[var(--df-text)] transition-all duration-300 hover:border-[#8F87FA]/60 hover:bg-[var(--df-secondary)] hover:shadow-[0_0_18px_-6px_rgba(109,100,240,0.8)]"
+                          >
+                            <FolderGit2 className="h-3.5 w-3.5 text-[var(--df-accent-secondary)]" aria-hidden="true" />
+                            GitHub <ExternalLink className="h-3 w-3 opacity-60 transition-transform group-hover:-translate-y-px group-hover:translate-x-px" />
+                          </a>
+                        )}
+                        {proj.deploymentUrl && (
+                          <a
+                            href={proj.deploymentUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="group inline-flex items-center gap-1.5 rounded-full border border-[#5EE7F7]/35 bg-[#5EE7F7]/10 px-3.5 py-1.5 text-xs font-medium text-[var(--df-cyan)] transition-all duration-300 hover:border-[#5EE7F7]/60 hover:shadow-[0_0_18px_-6px_rgba(94,231,247,0.8)]"
+                          >
+                            <Globe className="h-3.5 w-3.5" aria-hidden="true" />
+                            Live URL <ExternalLink className="h-3 w-3 opacity-60 transition-transform group-hover:-translate-y-px group-hover:translate-x-px" />
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </Reveal>
             );
           })}
         </div>

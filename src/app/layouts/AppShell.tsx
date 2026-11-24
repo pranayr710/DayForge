@@ -25,7 +25,7 @@ import { DEFAULT_USER_ID } from '@/config/personalPlan';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { useIstClock } from '@/hooks/useIstClock';
 import { useFocusTimer } from '@/app/providers/FocusProvider';
-import { DayForgeLogo } from '@/components/shared/SharedComponents';
+import { AuroraBackdrop, DayForgeLogo } from '@/components/shared/SharedComponents';
 import { Button } from '@/components/ui/Button';
 import { FocusModal } from '@/features/focus/FocusModal';
 import { cn } from '@/lib/utils';
@@ -69,46 +69,75 @@ export function AppShell() {
     (p) => location.pathname.startsWith(p)
   );
 
+  // Purely visual: how far through the day we are (drives the header light line).
+  const dayProgressPct = Math.round((istNow.minutesFromMidnight / 1440) * 100);
+  const focusClock = `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, '0')}`;
+
   return (
-    <div className="min-h-[100dvh] bg-[var(--df-bg)] df-ambient-canvas text-[var(--df-text)] flex flex-col lg:flex-row">
-      {/* Desktop Floating Smoked-Glass Sidebar */}
+    <div className="min-h-[100dvh] df-ambient-canvas text-[var(--df-text)] flex flex-col lg:flex-row">
+      <AuroraBackdrop />
+
+      {/* Desktop Floating Aurora-Glass Sidebar */}
       <aside
         className={cn(
-          'hidden lg:flex lg:fixed lg:inset-y-3 lg:left-3 lg:z-40 flex-col justify-between rounded-2xl df-glass transition-[width] duration-250 ease-out',
-          collapsed ? 'w-[72px]' : 'w-60'
+          'hidden lg:flex lg:fixed lg:inset-y-3 lg:left-3 lg:z-40 flex-col justify-between rounded-[26px] df-glass transition-[width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+          collapsed ? 'w-[76px]' : 'w-[248px]'
         )}
       >
-        <div className="flex flex-col">
-          <div className="flex h-16 items-center justify-between px-4 border-b border-[var(--df-border)]">
-            <NavLink to="/" className="flex items-center gap-2.5 min-w-0">
-              <DayForgeLogo className="h-7 w-7 shrink-0" />
+        <div className="flex flex-col min-h-0">
+          <div
+            className={cn(
+              'relative flex h-[72px] items-center px-4',
+              collapsed ? 'justify-center' : 'justify-between'
+            )}
+          >
+            <NavLink to="/" className="group flex items-center gap-3 min-w-0">
+              <span className="relative shrink-0">
+                <span className="absolute -inset-2 rounded-2xl bg-[radial-gradient(closest-side,rgba(109,100,240,0.55),transparent)] blur-md opacity-70 transition-opacity duration-500 group-hover:opacity-100" />
+                <DayForgeLogo className="relative h-9 w-9" />
+              </span>
               {!collapsed && (
                 <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-semibold tracking-tight text-[var(--df-text)] truncate">
-                    DayForge
+                  <span className="text-[15px] font-semibold tracking-[-0.02em] text-[var(--df-text)] truncate">
+                    Day<span className="df-text-aurora">Forge</span>
                   </span>
-                  <span className="text-[11px] text-[var(--df-text-muted)] truncate">
+                  <span className="text-[10.5px] uppercase tracking-[0.14em] text-[var(--df-text-faint)] truncate">
                     {profile?.semester ?? 'Semester VI'}
                   </span>
                 </div>
               )}
             </NavLink>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setCollapsed((c) => !c)}
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-              className="h-7 w-7"
-            >
-              {collapsed ? (
-                <ChevronRight className="h-4 w-4" />
-              ) : (
+            {!collapsed && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCollapsed(true)}
+                aria-label="Collapse sidebar"
+                className="h-7 w-7 rounded-lg"
+              >
                 <ChevronLeft className="h-4 w-4" />
-              )}
-            </Button>
+              </Button>
+            )}
+            <div className="absolute inset-x-4 bottom-0 df-hairline" />
           </div>
 
-          <nav className="flex flex-col gap-1 p-2.5" aria-label="Primary navigation">
+          {collapsed && (
+            <div className="flex justify-center pt-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setCollapsed(false)}
+                aria-label="Expand sidebar"
+                className="h-7 w-7 rounded-lg"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
+          {!collapsed && <p className="df-eyebrow px-6 pt-5 pb-2">Workspace</p>}
+
+          <nav className={cn('flex flex-col gap-1 px-3', collapsed && 'pt-3')} aria-label="Primary navigation">
             {DESKTOP_NAV.map((item) => {
               const Icon = item.icon;
               const isActive =
@@ -122,11 +151,11 @@ export function AppShell() {
                   end={item.to === '/'}
                   title={collapsed ? item.label : undefined}
                   className={cn(
-                    'relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors duration-150',
+                    'group relative flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-[13.5px] font-medium transition-colors duration-200',
                     collapsed && 'justify-center px-2',
                     isActive
                       ? 'text-white'
-                      : 'text-[var(--df-text-muted)] hover:text-[var(--df-text)] hover:bg-white/[0.04]'
+                      : 'text-[var(--df-text-muted)] hover:text-[var(--df-text)] hover:bg-[var(--df-inset)]'
                   )}
                 >
                   {isActive && (
@@ -137,10 +166,17 @@ export function AppShell() {
                           ? { duration: 0 }
                           : { type: 'spring', stiffness: 380, damping: 32 }
                       }
-                      className="absolute inset-0 rounded-xl bg-gradient-to-b from-[#6F67E5] to-[#5B52D1] shadow-[inset_0_1px_0_rgba(255,255,255,0.22),0_6px_18px_-6px_rgba(99,91,219,0.55)]"
-                    />
+                      className="absolute inset-0 rounded-[14px] bg-[linear-gradient(135deg,#7B72F6_0%,#635BDB_50%,#4C42C2_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_26px_-8px_rgba(109,100,240,0.85)]"
+                    >
+                      <span className="absolute -left-3 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-[#5EE7F7] shadow-[0_0_12px_#5EE7F7]" />
+                    </motion.span>
                   )}
-                  <Icon className="relative z-10 h-4 w-4 shrink-0" />
+                  <Icon
+                    className={cn(
+                      'relative z-10 h-[17px] w-[17px] shrink-0 transition-transform duration-300',
+                      !isActive && 'group-hover:scale-110 group-hover:text-[var(--df-accent-secondary)]'
+                    )}
+                  />
                   {!collapsed && <span className="relative z-10 truncate">{item.label}</span>}
                 </NavLink>
               );
@@ -148,35 +184,57 @@ export function AppShell() {
           </nav>
         </div>
 
-        <div className="border-t border-[var(--df-border)] p-2.5 flex flex-col gap-2">
+        <div className="relative flex flex-col gap-3 p-3">
+          <div className="absolute inset-x-4 top-0 df-hairline" />
+
+          {/* Day progress widget */}
+          {!collapsed && (
+            <div className="rounded-2xl df-well p-3">
+              <div className="flex items-center justify-between">
+                <span className="df-eyebrow">Today</span>
+                <span className="font-mono-tabular text-[11px] text-[var(--df-text-muted)]">
+                  {dayProgressPct}%
+                </span>
+              </div>
+              <p className="mt-1 font-mono-tabular text-lg font-semibold tracking-tight text-[var(--df-text)]">
+                {istNow.formattedTime}
+              </p>
+              <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-[var(--df-inset)]">
+                <div
+                  className="h-full rounded-full bg-[linear-gradient(90deg,#635BDB,#A78BFA,#5EE7F7)] shadow-[0_0_10px_rgba(143,135,250,0.7)] transition-[width] duration-1000"
+                  style={{ width: `${dayProgressPct}%` }}
+                />
+              </div>
+            </div>
+          )}
+
           <Button
-            variant="secondary"
+            variant={isRunning ? 'primary' : 'secondary'}
             size="sm"
             onClick={() => openFocus()}
-            className={cn('w-full justify-start', collapsed && 'justify-center px-0')}
+            className={cn('h-10 w-full justify-start rounded-xl', collapsed && 'justify-center px-0')}
           >
-            <Timer className="h-4 w-4 text-[#8178F5] shrink-0" />
+            <span className="relative flex h-4 w-4 shrink-0 items-center justify-center">
+              {isRunning && <span className="df-dot-live absolute inset-0 rounded-full text-white/70" />}
+              <Timer className={cn('h-4 w-4', isRunning ? 'text-white' : 'text-[var(--df-accent-secondary)]')} />
+            </span>
             {!collapsed && (
               <span className="truncate font-mono-tabular">
-                {isRunning
-                  ? `Focus ${Math.floor(remainingSeconds / 60)}:${String(
-                      remainingSeconds % 60
-                    ).padStart(2, '0')}`
-                  : 'Focus Mode'}
+                {isRunning ? `Focus ${focusClock}` : 'Focus Mode'}
               </span>
             )}
           </Button>
 
           <div
             className={cn(
-              'flex items-center gap-2 px-2 py-1 text-[11px] text-[var(--df-text-muted)]',
+              'flex items-center gap-2 px-1.5 text-[11px] text-[var(--df-text-faint)]',
               collapsed && 'justify-center px-0'
             )}
           >
             {online ? (
-              <Wifi className="h-3.5 w-3.5 text-[#16A34A] shrink-0" />
+              <Wifi className="h-3.5 w-3.5 text-[var(--df-success)] shrink-0" />
             ) : (
-              <WifiOff className="h-3.5 w-3.5 text-[#E5A03C] shrink-0" />
+              <WifiOff className="h-3.5 w-3.5 text-[var(--df-warning)] shrink-0" />
             )}
             {!collapsed && (
               <span className="truncate">
@@ -190,71 +248,99 @@ export function AppShell() {
       {/* Main Content Area */}
       <div
         className={cn(
-          'flex-1 flex flex-col min-w-0 transition-[padding] duration-250 ease-out',
+          'flex-1 flex flex-col min-w-0 transition-[padding] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
           collapsed ? 'lg:pl-[92px]' : 'lg:pl-[264px]'
         )}
       >
         {/* Mobile & Tablet Frosted Top Header */}
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[var(--df-border)] bg-[var(--df-secondary)] backdrop-blur-xl px-4 lg:hidden">
-          <NavLink to="/" className="flex items-center gap-2 min-w-0">
-            <DayForgeLogo className="h-6 w-6 shrink-0" />
-            <span className="text-sm font-semibold tracking-tight text-[var(--df-text)]">
-              DayForge
-            </span>
-          </NavLink>
-          <div className="flex items-center gap-2">
-            <span className="font-mono-tabular text-[11px] text-[var(--df-text-muted)]">
-              {istNow.formattedTime} IST
-            </span>
-            <span
-              className={cn(
-                'h-2 w-2 rounded-full',
-                online ? 'bg-[#16A34A]' : 'bg-[#E5A03C]'
-              )}
-              title={online ? 'Online (Local-first)' : 'Offline'}
+        <header className="sticky top-0 z-30 lg:hidden">
+          <div className="flex h-14 items-center justify-between border-b border-[var(--df-border)] bg-[var(--df-secondary)] px-4 backdrop-blur-2xl backdrop-saturate-150">
+            <NavLink to="/" className="flex items-center gap-2.5 min-w-0">
+              <DayForgeLogo className="h-7 w-7 shrink-0" />
+              <span className="text-[15px] font-semibold tracking-[-0.02em] text-[var(--df-text)]">
+                Day<span className="df-text-aurora">Forge</span>
+              </span>
+            </NavLink>
+            <div className="flex items-center gap-2.5">
+              <span className="flex items-center gap-1.5 rounded-full df-well px-2.5 py-1 font-mono-tabular text-[11px] text-[var(--df-text-muted)]">
+                <span
+                  className={cn(
+                    'df-dot-live h-1.5 w-1.5 rounded-full',
+                    online ? 'bg-[var(--df-success)] text-[var(--df-success)]' : 'bg-[var(--df-warning)] text-[var(--df-warning)]'
+                  )}
+                  title={online ? 'Online (Local-first)' : 'Offline'}
+                />
+                {istNow.formattedTime}
+              </span>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => openFocus()}
+                className="h-8 rounded-full px-3 text-xs"
+              >
+                <Timer className="h-3.5 w-3.5" />
+                <span>{isRunning ? `${Math.floor(remainingSeconds / 60)}m` : 'Focus'}</span>
+              </Button>
+            </div>
+          </div>
+          <div className="h-px w-full bg-[var(--df-border)]">
+            <div
+              className="h-px bg-[linear-gradient(90deg,transparent,#8F87FA,#5EE7F7)] shadow-[0_0_8px_#8F87FA]"
+              style={{ width: `${dayProgressPct}%` }}
             />
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => openFocus()}
-              className="h-8 px-2.5 text-xs"
-            >
-              <Timer className="h-3.5 w-3.5" />
-              <span>{isRunning ? `${Math.floor(remainingSeconds / 60)}m` : 'Focus'}</span>
-            </Button>
           </div>
         </header>
 
-        {/* Desktop Subtle Glass Top Bar */}
-        <header className="hidden lg:flex h-14 items-center justify-between mx-6 mt-3 rounded-2xl df-glass px-5 sticky top-3 z-30">
+        {/* Desktop Aurora Glass Top Bar */}
+        <header className="hidden lg:flex h-[60px] items-center justify-between mx-6 mt-3 rounded-[20px] df-glass px-5 sticky top-3 z-30">
           <div className="flex items-center gap-3 text-xs text-[var(--df-text-muted)] min-w-0">
+            <span className="flex items-center gap-2 rounded-full df-well px-3 py-1.5 shrink-0">
+              <span
+                className={cn(
+                  'df-dot-live h-1.5 w-1.5 rounded-full',
+                  online ? 'bg-[var(--df-success)] text-[var(--df-success)]' : 'bg-[var(--df-warning)] text-[var(--df-warning)]'
+                )}
+              />
+              <span className="font-mono-tabular font-medium text-[var(--df-text)]">
+                {istNow.formattedTime}
+              </span>
+              <span className="text-[var(--df-text-faint)]">IST</span>
+            </span>
             <span className="font-medium text-[var(--df-text)] shrink-0">
               {istNow.dayName}, {istNow.formattedDate}
             </span>
-            <span>·</span>
-            <span className="font-mono-tabular shrink-0">{istNow.formattedTime} IST</span>
-            <span>·</span>
-            <span className="truncate">
+            <span className="h-3.5 w-px bg-[var(--df-border-strong)]" />
+            <span className="truncate text-[var(--df-text-faint)]">
               {profile?.institution ?? 'Amrita School of Computing, Coimbatore'}
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Button variant="primary" size="sm" onClick={() => openFocus()}>
-              <Timer className="h-3.5 w-3.5" />
-              <span>{isRunning ? 'Focus Active' : 'Start Focus'}</span>
+            <Button variant="primary" size="sm" onClick={() => openFocus()} className="rounded-full px-4">
+              <span className="relative flex h-3.5 w-3.5 items-center justify-center">
+                {isRunning && <span className="df-dot-live absolute inset-0 rounded-full text-white/70" />}
+                <Timer className="h-3.5 w-3.5" />
+              </span>
+              <span>{isRunning ? `Focus Active · ${focusClock}` : 'Start Focus'}</span>
             </Button>
+          </div>
+          {/* Day-progress light line */}
+          <div className="absolute inset-x-6 bottom-0 h-px">
+            <div
+              className="h-px bg-[linear-gradient(90deg,transparent,#8F87FA_60%,#5EE7F7)] shadow-[0_0_10px_#8F87FA] transition-[width] duration-1000"
+              style={{ width: `${dayProgressPct}%` }}
+            />
           </div>
         </header>
 
-        <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 pt-4 pb-28 sm:px-6 sm:pt-5 lg:pb-10">
+        <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 pt-5 pb-32 sm:px-6 sm:pt-7 lg:pb-12">
           <motion.div
             key={location.pathname}
-            initial={reduced ? { opacity: 1 } : { opacity: 0, y: 8 }}
+            initial={reduced ? { opacity: 1 } : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={
               reduced
                 ? { duration: 0 }
-                : { duration: 0.22, ease: [0.22, 1, 0.36, 1] }
+                : { duration: 0.45, ease: [0.22, 1, 0.36, 1] }
             }
           >
             <Outlet />
@@ -262,9 +348,9 @@ export function AppShell() {
         </main>
       </div>
 
-      {/* Mobile Floating Smoked-Glass Bottom Navigation (5 Destinations) */}
+      {/* Mobile Floating Aurora-Glass Dock (5 Destinations) */}
       <nav
-        className="fixed inset-x-3 bottom-3 z-40 flex items-center justify-around rounded-2xl df-glass-elevated px-1 py-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] lg:hidden"
+        className="fixed inset-x-3 bottom-3 z-40 flex items-center justify-around rounded-[24px] df-glass-elevated px-1.5 py-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] lg:hidden"
         aria-label="Mobile bottom navigation"
       >
         {MOBILE_PRIMARY_NAV.map((item) => {
@@ -280,9 +366,9 @@ export function AppShell() {
               end={item.to === '/'}
               onClick={() => setMoreOpen(false)}
               className={cn(
-                'relative flex min-h-[44px] min-w-[56px] flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1 text-[11px] font-medium transition-colors',
+                'relative flex min-h-[48px] min-w-[58px] flex-col items-center justify-center gap-1 rounded-[18px] px-2 py-1 text-[10.5px] font-medium transition-colors',
                 isActive
-                  ? 'text-[#8178F5]'
+                  ? 'text-white'
                   : 'text-[var(--df-text-muted)] hover:text-[var(--df-text)]'
               )}
             >
@@ -294,10 +380,10 @@ export function AppShell() {
                       ? { duration: 0 }
                       : { type: 'spring', stiffness: 400, damping: 30 }
                   }
-                  className="absolute inset-0 rounded-xl bg-[#635BDB]/15 border border-[#635BDB]/30"
+                  className="absolute inset-0 rounded-[18px] bg-[linear-gradient(135deg,#7B72F6,#5145C8)] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_8px_20px_-6px_rgba(109,100,240,0.85)]"
                 />
               )}
-              <Icon className="relative z-10 h-4 w-4" />
+              <Icon className="relative z-10 h-[18px] w-[18px]" />
               <span className="relative z-10">{item.label}</span>
             </NavLink>
           );
@@ -308,9 +394,9 @@ export function AppShell() {
           onClick={() => setMoreOpen((v) => !v)}
           aria-expanded={moreOpen}
           className={cn(
-            'relative flex min-h-[44px] min-w-[56px] flex-col items-center justify-center gap-0.5 rounded-xl px-2 py-1 text-[11px] font-medium transition-colors cursor-pointer',
+            'relative flex min-h-[48px] min-w-[58px] flex-col items-center justify-center gap-1 rounded-[18px] px-2 py-1 text-[10.5px] font-medium transition-colors cursor-pointer',
             moreOpen || isMoreRouteActive
-              ? 'text-[#8178F5]'
+              ? 'text-white'
               : 'text-[var(--df-text-muted)] hover:text-[var(--df-text)]'
           )}
         >
@@ -322,10 +408,10 @@ export function AppShell() {
                   ? { duration: 0 }
                   : { type: 'spring', stiffness: 400, damping: 30 }
               }
-              className="absolute inset-0 rounded-xl bg-[#635BDB]/15 border border-[#635BDB]/30"
+              className="absolute inset-0 rounded-[18px] bg-[linear-gradient(135deg,#7B72F6,#5145C8)] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_8px_20px_-6px_rgba(109,100,240,0.85)]"
             />
           )}
-          <MoreHorizontal className="relative z-10 h-4 w-4" />
+          <MoreHorizontal className="relative z-10 h-[18px] w-[18px]" />
           <span className="relative z-10">More</span>
         </button>
       </nav>
@@ -338,23 +424,24 @@ export function AppShell() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: reduced ? 0 : 0.16 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+              transition={{ duration: reduced ? 0 : 0.2 }}
+              className="fixed inset-0 bg-[radial-gradient(80%_60%_at_50%_80%,rgba(40,34,110,0.35),rgba(3,4,8,0.8))] backdrop-blur-md"
               onClick={() => setMoreOpen(false)}
             />
             <motion.div
-              initial={reduced ? { opacity: 1 } : { y: 40, opacity: 0 }}
+              initial={reduced ? { opacity: 1 } : { y: 60, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={reduced ? { opacity: 0 } : { y: 40, opacity: 0 }}
+              exit={reduced ? { opacity: 0 } : { y: 60, opacity: 0 }}
               transition={
                 reduced
                   ? { duration: 0 }
-                  : { type: 'spring', stiffness: 360, damping: 32 }
+                  : { type: 'spring', stiffness: 340, damping: 32 }
               }
-              className="relative z-10 w-full rounded-t-3xl df-glass-elevated p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
+              className="relative z-10 w-full rounded-t-[30px] df-glass-elevated p-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]"
             >
-              <div className="mb-3 flex items-center justify-between">
-                <span className="text-sm font-semibold text-[var(--df-text)]">
+              <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--df-border-strong)]" />
+              <div className="mb-4 flex items-center justify-between">
+                <span className="text-base font-semibold tracking-tight text-[var(--df-text)]">
                   More Modules
                 </span>
                 <Button
@@ -362,39 +449,47 @@ export function AppShell() {
                   size="icon"
                   onClick={() => setMoreOpen(false)}
                   aria-label="Close menu"
+                  className="rounded-full"
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
               <div className="flex flex-col gap-2">
-                {MOBILE_MORE_NAV.map((item) => {
+                {MOBILE_MORE_NAV.map((item, idx) => {
                   const Icon = item.icon;
                   return (
-                    <NavLink
+                    <motion.div
                       key={item.to}
-                      to={item.to}
-                      onClick={() => setMoreOpen(false)}
-                      className={({ isActive }) =>
-                        cn(
-                          'flex items-center gap-3 rounded-xl border border-[var(--df-border)] p-3 transition-colors',
-                          isActive
-                            ? 'border-[#635BDB]/50 bg-[#635BDB]/15'
-                            : 'bg-[var(--df-bg)]/70 hover:bg-[var(--df-elevated)]'
-                        )
-                      }
+                      initial={reduced ? false : { opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: reduced ? 0 : 0.05 + idx * 0.05, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                     >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#635BDB]/15 text-[#8178F5]">
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-[var(--df-text)]">
-                          {item.label}
-                        </p>
-                        <p className="text-xs text-[var(--df-text-muted)] truncate">
-                          {item.desc}
-                        </p>
-                      </div>
-                    </NavLink>
+                      <NavLink
+                        to={item.to}
+                        onClick={() => setMoreOpen(false)}
+                        className={({ isActive }) =>
+                          cn(
+                            'flex items-center gap-3 rounded-2xl border p-3 transition-all',
+                            isActive
+                              ? 'border-[#8F87FA]/50 bg-[linear-gradient(135deg,rgba(109,100,240,0.22),rgba(94,231,247,0.06))]'
+                              : 'border-[var(--df-border)] bg-[var(--df-inset)] hover:border-[var(--df-border-strong)]'
+                          )
+                        }
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#8F87FA]/30 bg-[linear-gradient(145deg,rgba(109,100,240,0.28),rgba(94,231,247,0.08))] text-[var(--df-accent-secondary)]">
+                          <Icon className="h-[18px] w-[18px]" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-[var(--df-text)]">
+                            {item.label}
+                          </p>
+                          <p className="text-xs text-[var(--df-text-muted)] truncate">
+                            {item.desc}
+                          </p>
+                        </div>
+                        <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-[var(--df-text-faint)]" />
+                      </NavLink>
+                    </motion.div>
                   );
                 })}
               </div>

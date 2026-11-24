@@ -14,19 +14,25 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 const TONE_CLASSES: Record<BadgeTone, string> = {
-  neutral: 'bg-[var(--df-elevated)] text-[var(--df-text-muted)] border-[var(--df-border)]',
-  accent: 'bg-[#635BDB]/15 text-[#8178F5] border-[#635BDB]/30',
-  success: 'bg-[#16A34A]/15 text-[#22C55E] border-[#16A34A]/30',
-  warning: 'bg-[#E5A03C]/15 text-[#E5A03C] border-[#E5A03C]/30',
-  error: 'bg-[#E05252]/15 text-[#E05252] border-[#E05252]/30',
-  info: 'bg-sky-500/15 text-sky-400 border-sky-500/30',
+  neutral:
+    'bg-[var(--df-inset)] text-[var(--df-text-muted)] border-[var(--df-border-strong)]',
+  accent:
+    'bg-[linear-gradient(135deg,rgba(109,100,240,0.20),rgba(167,139,250,0.10))] text-[var(--df-accent-secondary)] border-[#8F87FA]/35 shadow-[0_0_14px_-6px_rgba(109,100,240,0.7)]',
+  success:
+    'bg-[#22C55E]/12 text-[var(--df-success)] border-[#22C55E]/30 shadow-[0_0_14px_-6px_rgba(34,197,94,0.6)]',
+  warning:
+    'bg-[#F0B455]/12 text-[var(--df-warning)] border-[#F0B455]/30',
+  error:
+    'bg-[#F06A6A]/12 text-[var(--df-error)] border-[#F06A6A]/30',
+  info:
+    'bg-[#5EE7F7]/10 text-[var(--df-cyan)] border-[#5EE7F7]/30',
 };
 
 export function Badge({ className, tone = 'neutral', ...props }: BadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium leading-tight',
+        'inline-flex items-center gap-1 rounded-full border px-2 py-[3px] text-[10.5px] font-medium leading-none tracking-[0.01em] backdrop-blur-md',
         TONE_CLASSES[tone],
         className
       )}
