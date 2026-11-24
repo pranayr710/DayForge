@@ -30,6 +30,7 @@ import {
   deleteUniversityTarget,
   logPlacementSession,
   patchUniversityTarget,
+  toggleCareerChecklistItem,
   updateMastersMilestone,
   updatePlacementTopic,
   upsertInternship,
@@ -134,6 +135,7 @@ export default function CareerPage() {
   const internships = useLiveQuery(() => db.internshipApplications.toArray(), []) ?? [];
   const milestones = useLiveQuery(() => db.mastersMilestones.orderBy('order').toArray(), []) ?? [];
   const universities = useLiveQuery(() => db.universities.toArray(), []) ?? [];
+  const careerChecklist = useLiveQuery(() => db.careerChecklist.toArray(), []) ?? [];
 
   const istNow = useIstClock(profile?.timezone ?? 'Asia/Kolkata');
   const { toast } = useToast();
@@ -709,6 +711,49 @@ export default function CareerPage() {
               </CardContent>
             </Card>
           </Reveal>
+
+          {careerChecklist.length > 0 && (
+            <Reveal delay={0.11}>
+              <Card>
+                <CardHeader>
+                  <div>
+                    <p className="df-eyebrow">Readiness</p>
+                    <CardTitle>Internship Application Checklist</CardTitle>
+                  </div>
+                  <Badge tone="accent" className="font-mono-tabular">
+                    {careerChecklist.filter((c) => c.completed).length}/{careerChecklist.length}
+                  </Badge>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {careerChecklist.map((chk) => (
+                    <button
+                      key={chk.id}
+                      type="button"
+                      onClick={() => void toggleCareerChecklistItem(chk.id, chk.completed)}
+                      className={cn(
+                        'flex items-center gap-2.5 rounded-2xl border px-3 py-2 text-left text-xs transition-all cursor-pointer',
+                        chk.completed
+                          ? 'border-[#22C55E]/30 bg-[#22C55E]/[0.05] text-[var(--df-text-muted)] line-through'
+                          : 'df-well text-[var(--df-text)] hover:border-[#8F87FA]/45'
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'flex h-4 w-4 shrink-0 items-center justify-center rounded border',
+                          chk.completed
+                            ? 'border-[#16A34A] bg-[#16A34A] text-white'
+                            : 'border-[var(--df-border-strong)]'
+                        )}
+                      >
+                        {chk.completed && <Check className="h-3 w-3" />}
+                      </span>
+                      <span>{chk.label}</span>
+                    </button>
+                  ))}
+                </CardContent>
+              </Card>
+            </Reveal>
+          )}
 
           {internships.length === 0 ? (
             <Reveal delay={0.14}>

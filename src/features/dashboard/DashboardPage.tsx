@@ -13,10 +13,19 @@ import {
   Sparkles,
   Timer,
   AlertCircle,
+  ExternalLink,
+  Tv,
+  Code2,
 } from 'lucide-react';
 import { db } from '@/services/storage/db';
 import { DEFAULT_USER_ID, PERSONAL_PLAN_DEFAULTS } from '@/config/personalPlan';
 import { PLACEMENT_WEEKLY_ROTATION } from '@/config/career';
+import {
+  DAILY_READING_WEBSITES,
+  getQuickLinksForScheduleBlock,
+  getYoutubeChannelForDay,
+} from '@/config/awareness';
+import { DSA_RESOURCES } from '@/config/curriculum';
 import { useIstClock } from '@/hooks/useIstClock';
 import { useFocusTimer } from '@/app/providers/FocusProvider';
 import { useToast } from '@/app/providers/ToastProvider';
@@ -286,6 +295,7 @@ export default function DashboardPage() {
   const todayPlacement =
     PLACEMENT_WEEKLY_ROTATION.find((r) => r.dayOfWeek === istNow.dayOfWeek) ??
     PLACEMENT_WEEKLY_ROTATION[0]!;
+  const todayYoutube = getYoutubeChannelForDay(istNow.dayOfWeek);
 
   async function handleQuickAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -681,6 +691,29 @@ export default function DashboardPage() {
                                 {[block.subtitle, block.location].filter(Boolean).join(' · ')}
                               </p>
                             )}
+                            {(() => {
+                              const links = getQuickLinksForScheduleBlock(
+                                block.title,
+                                istNow.dayOfWeek
+                              );
+                              if (links.length === 0) return null;
+                              return (
+                                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                                  {links.map((lnk) => (
+                                    <a
+                                      key={lnk.url}
+                                      href={lnk.url}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex items-center gap-1 rounded-full border border-[#8F87FA]/40 bg-[#635BDB]/12 px-2.5 py-0.5 text-[11px] font-medium text-[var(--df-accent-secondary)] transition-colors hover:bg-[#635BDB]/25 hover:text-white"
+                                    >
+                                      <span>{lnk.label}</span>
+                                      <ExternalLink className="h-2.5 w-2.5" />
+                                    </a>
+                                  ))}
+                                </div>
+                              );
+                            })()}
                           </div>
                         </motion.li>
                       );
@@ -837,6 +870,85 @@ export default function DashboardPage() {
 
         {/* Right Contextual Column */}
         <div className="space-y-6 lg:col-span-5">
+          {/* Today's YouTube & Dev Redirects */}
+          <Reveal delay={0.08}>
+            <Card>
+              <CardHeader>
+                <div>
+                  <CardTitle>YouTube &amp; Dev Redirects</CardTitle>
+                  <p className="mt-0.5 text-xs text-[var(--df-text-muted)]">
+                    8:00–9:00 PM tech routine &amp; daily Java DSA links
+                  </p>
+                </div>
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#8F87FA]/30 bg-[#6D64F0]/12 text-[var(--df-accent-secondary)]">
+                  <Tv className="h-4 w-4" />
+                </span>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <a
+                  href={todayYoutube.channelUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-[#8F87FA]/40 bg-[linear-gradient(110deg,rgba(109,100,240,0.18),rgba(94,231,247,0.05))] p-3.5 transition-all hover:border-[#8F87FA]/70"
+                >
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge tone="accent">8:30 PM · {todayYoutube.dayName}</Badge>
+                      <span className="text-sm font-semibold text-[var(--df-text)] truncate">
+                        {todayYoutube.channel}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-[var(--df-text-muted)] truncate">
+                      {todayYoutube.topic}
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[linear-gradient(135deg,#7B72F6,#5145C8)] px-3 py-1.5 text-xs font-medium text-white shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]">
+                    Watch <ExternalLink className="h-3 w-3" />
+                  </span>
+                </a>
+
+                <div>
+                  <p className="df-eyebrow mb-1.5">Dev &amp; Reading Portals</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {DAILY_READING_WEBSITES.map((site) => (
+                      <a
+                        key={site.id}
+                        href={site.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 rounded-full border border-[var(--df-border)] bg-[var(--df-inset)] px-2.5 py-1 text-xs font-medium text-[var(--df-text)] transition-colors hover:border-[#8F87FA]/60 hover:text-[var(--df-accent-secondary)]"
+                      >
+                        <span>{site.name}</span>
+                        <ExternalLink className="h-3 w-3 text-[var(--df-text-muted)]" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="df-eyebrow mb-1.5 flex items-center gap-1">
+                    <Code2 className="h-3 w-3" />
+                    Java DSA Resources
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {DSA_RESOURCES.map((res) => (
+                      <a
+                        key={res.name}
+                        href={res.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 rounded-full border border-[var(--df-border)] bg-[var(--df-inset)] px-2.5 py-1 text-xs font-medium text-[var(--df-text)] transition-colors hover:border-[#8F87FA]/60 hover:text-[var(--df-accent-secondary)]"
+                      >
+                        <span>{res.name}</span>
+                        <ExternalLink className="h-3 w-3 text-[var(--df-text-muted)]" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Reveal>
+
           {/* 4 Long-Term Goals */}
           <Reveal delay={0.1}>
             <Card>

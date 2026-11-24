@@ -5,6 +5,7 @@ import { createId } from '@/lib/utils';
 import { addDaysToDateKey, getDayOfWeekFromDateKey } from '@/lib/dateUtils';
 import type {
   AwarenessLog,
+  CareerChecklistItem,
   DsaProblem,
   FocusSession,
   HabitItem,
@@ -628,6 +629,16 @@ export async function deleteUniversityTarget(id: string): Promise<void> {
   await db.universities.delete(id);
 }
 
+export async function toggleCareerChecklistItem(
+  id: string,
+  completed: boolean
+): Promise<void> {
+  await db.careerChecklist.update(id, {
+    completed: !completed,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
 /**
  * Merges a partial patch into a university record. update() applies against the
  * current stored row, so changing one checklist field won't revert another
@@ -665,6 +676,7 @@ export interface DayForgeBackupPayload {
     internshipApplications: InternshipApplication[];
     mastersMilestones: MastersMilestone[];
     universities: UniversityTarget[];
+    careerChecklist?: CareerChecklistItem[];
   };
 }
 
@@ -690,6 +702,7 @@ export async function exportDayForgeBackup(): Promise<DayForgeBackupPayload> {
       internshipApplications: await db.internshipApplications.toArray(),
       mastersMilestones: await db.mastersMilestones.toArray(),
       universities: await db.universities.toArray(),
+      careerChecklist: await db.careerChecklist.toArray(),
     },
   };
 }
@@ -718,6 +731,7 @@ export async function importDayForgeBackup(
       db.internshipApplications,
       db.mastersMilestones,
       db.universities,
+      db.careerChecklist,
     ],
     async () => {
       await Promise.all([
@@ -738,6 +752,7 @@ export async function importDayForgeBackup(
         db.internshipApplications.clear(),
         db.mastersMilestones.clear(),
         db.universities.clear(),
+        db.careerChecklist.clear(),
       ]);
 
       await Promise.all([
@@ -758,6 +773,7 @@ export async function importDayForgeBackup(
         t.internshipApplications.length ? db.internshipApplications.bulkPut(t.internshipApplications) : Promise.resolve(),
         t.mastersMilestones.length ? db.mastersMilestones.bulkPut(t.mastersMilestones) : Promise.resolve(),
         t.universities.length ? db.universities.bulkPut(t.universities) : Promise.resolve(),
+        t.careerChecklist?.length ? db.careerChecklist.bulkPut(t.careerChecklist) : Promise.resolve(),
       ]);
     }
   );

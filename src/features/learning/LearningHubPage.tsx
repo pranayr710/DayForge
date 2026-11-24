@@ -34,6 +34,7 @@ import {
   DSA_DAILY_STRUCTURE,
   DSA_RESOURCES,
   FIRST_12_WEEK_CURRICULUM,
+  getChannelUrl,
 } from '@/config/curriculum';
 import {
   DAILY_READING_WEBSITES,
@@ -545,12 +546,28 @@ export default function LearningHubPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-1.5">
-                    {stage.recommendedChannels.map((ch) => (
-                      <Badge key={ch} tone="neutral" className="gap-1">
-                        <Tv className="h-2.5 w-2.5 opacity-70" />
-                        {ch}
-                      </Badge>
-                    ))}
+                    {stage.recommendedChannels.map((ch) => {
+                      const url = getChannelUrl(ch);
+                      return url ? (
+                        <a
+                          key={ch}
+                          href={url}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 rounded-full border border-[var(--df-border)] bg-[var(--df-inset)] px-2.5 py-0.5 text-[11px] font-medium text-[var(--df-text-muted)] transition-colors hover:border-[#8F87FA]/60 hover:text-[var(--df-accent-secondary)]"
+                        >
+                          <Tv className="h-2.5 w-2.5 opacity-70" />
+                          <span>{ch}</span>
+                          <ExternalLink className="h-2.5 w-2.5 opacity-70" />
+                        </a>
+                      ) : (
+                        <Badge key={ch} tone="neutral" className="gap-1">
+                          <Tv className="h-2.5 w-2.5 opacity-70" />
+                          {ch}
+                        </Badge>
+                      );
+                    })}
                   </div>
 
                   <div className="df-hairline" />
@@ -926,6 +943,7 @@ export default function LearningHubPage() {
                     key: 'youtubeDone' as const,
                     time: '08:30–08:45 PM',
                     label: `YouTube: ${todayYt.channel} (${todayYt.topic})`,
+                    url: todayYt.channelUrl,
                     done: Boolean(todayAwareness?.youtubeDone),
                   },
                   {
@@ -1097,7 +1115,12 @@ export default function LearningHubPage() {
           <div className="space-y-4 lg:col-span-5">
             {/* Featured: today's YouTube channel (decorative highlight of existing value) */}
             <Reveal delay={0.08}>
-              <div className="relative overflow-hidden rounded-[22px] border border-[#8F87FA]/35 bg-[linear-gradient(140deg,rgba(109,100,240,0.22),rgba(167,139,250,0.08)_45%,rgba(94,231,247,0.10))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_24px_60px_-30px_rgba(109,100,240,0.9)]">
+              <a
+                href={todayYt.channelUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="group block relative overflow-hidden rounded-[22px] border border-[#8F87FA]/35 bg-[linear-gradient(140deg,rgba(109,100,240,0.22),rgba(167,139,250,0.08)_45%,rgba(94,231,247,0.10))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_24px_60px_-30px_rgba(109,100,240,0.9)] transition-all hover:border-[#8F87FA]/65"
+              >
                 <div
                   aria-hidden
                   className="pointer-events-none absolute -right-12 -top-14 h-44 w-44 rounded-full bg-[radial-gradient(closest-side,rgba(94,231,247,0.28),transparent)] blur-2xl df-breathe"
@@ -1106,19 +1129,25 @@ export default function LearningHubPage() {
                   <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-[linear-gradient(135deg,#7B72F6,#5145C8)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_24px_-8px_rgba(109,100,240,0.9)]">
                     <Play className="h-6 w-6 translate-x-[1px] fill-current" />
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <p className="df-eyebrow">Today&apos;s YouTube · {istNow.dayName}</p>
-                    <p className="mt-1 truncate text-lg font-semibold tracking-[-0.02em] text-[var(--df-text)]">
+                    <p className="mt-1 truncate text-lg font-semibold tracking-[-0.02em] text-[var(--df-text)] group-hover:text-white">
                       {todayYt.channel}
                     </p>
                     <p className="text-xs text-[var(--df-text-muted)]">{todayYt.topic}</p>
                   </div>
+                  <ExternalLink className="h-4 w-4 shrink-0 text-[var(--df-text-muted)] group-hover:text-white" />
                 </div>
-                <div className="relative mt-4 flex items-center gap-2 text-[11px] font-mono-tabular text-[var(--df-text-muted)]">
-                  <Clock className="h-3 w-3" />
-                  08:30–08:45 PM slot
+                <div className="relative mt-4 flex items-center justify-between text-[11px] font-mono-tabular text-[var(--df-text-muted)]">
+                  <span className="inline-flex items-center gap-2">
+                    <Clock className="h-3 w-3" />
+                    08:30–08:45 PM slot
+                  </span>
+                  <span className="text-[var(--df-accent-secondary)] font-sans font-medium">
+                    Watch on YouTube →
+                  </span>
                 </div>
-              </div>
+              </a>
             </Reveal>
 
             {/* YouTube Rotation */}
@@ -1132,13 +1161,16 @@ export default function LearningHubPage() {
               </CardHeader>
               <CardContent className="space-y-1.5">
                 {YOUTUBE_ROTATION.map((row) => (
-                  <div
+                  <a
                     key={row.dayName}
+                    href={row.channelUrl}
+                    target="_blank"
+                    rel="noreferrer"
                     className={cn(
-                      'flex items-start justify-between gap-2 rounded-2xl border px-3.5 py-2.5 text-xs transition-all',
+                      'group flex items-start justify-between gap-2 rounded-2xl border px-3.5 py-2.5 text-xs transition-all',
                       row.dayOfWeek === istNow.dayOfWeek
                         ? 'border-[#8F87FA]/60 bg-[#6D64F0]/10 shadow-[0_0_20px_-8px_rgba(109,100,240,0.9)]'
-                        : 'df-well hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)]'
+                        : 'df-well hover:border-[#8F87FA]/45 hover:bg-[var(--df-secondary)]'
                     )}
                   >
                     <div className="min-w-0">
@@ -1153,10 +1185,11 @@ export default function LearningHubPage() {
                       </span>
                       <p className="text-[11px] text-[var(--df-text-muted)]">{row.topic}</p>
                     </div>
-                    <Badge tone={row.dayOfWeek === istNow.dayOfWeek ? 'accent' : 'neutral'} className="shrink-0">
+                    <Badge tone={row.dayOfWeek === istNow.dayOfWeek ? 'accent' : 'neutral'} className="shrink-0 gap-1">
                       {row.channel}
+                      <ExternalLink className="h-2.5 w-2.5 opacity-70" />
                     </Badge>
-                  </div>
+                  </a>
                 ))}
               </CardContent>
             </Card>
@@ -1408,12 +1441,27 @@ export default function LearningHubPage() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap gap-1.5">
                 <Badge tone="accent">{selectedStage.weekMapping}</Badge>
-                {selectedStage.recommendedChannels.map((ch) => (
-                  <Badge key={ch} tone="neutral" className="gap-1">
-                    <Tv className="h-2.5 w-2.5 opacity-70" />
-                    {ch}
-                  </Badge>
-                ))}
+                {selectedStage.recommendedChannels.map((ch) => {
+                  const url = getChannelUrl(ch);
+                  return url ? (
+                    <a
+                      key={ch}
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 rounded-full border border-[#8F87FA]/40 bg-[#635BDB]/12 px-2.5 py-0.5 text-[11px] font-medium text-[var(--df-accent-secondary)] transition-colors hover:bg-[#635BDB]/25 hover:text-white"
+                    >
+                      <Tv className="h-2.5 w-2.5" />
+                      <span>{ch}</span>
+                      <ExternalLink className="h-2.5 w-2.5" />
+                    </a>
+                  ) : (
+                    <Badge key={ch} tone="neutral" className="gap-1">
+                      <Tv className="h-2.5 w-2.5 opacity-70" />
+                      {ch}
+                    </Badge>
+                  );
+                })}
               </div>
               <Select
                 value={selectedStage.status}

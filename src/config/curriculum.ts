@@ -8,31 +8,57 @@ export interface TwelveWeekItem {
 }
 
 export const FIRST_12_WEEK_CURRICULUM: TwelveWeekItem[] = [
-  { week: 1, title: 'Computer fundamentals.', stageRef: 1 },
-  { week: 2, title: 'Java programming, OOP and memory.', stageRef: 2 },
-  { week: 3, title: 'Git, GitHub, Linux and command line.', stageRef: 4 },
-  { week: 4, title: 'HTTP, DNS, TCP/IP and networking.', stageRef: 3 },
-  { week: 5, title: 'HTML, CSS and JavaScript.', stageRef: 5 },
-  { week: 6, title: 'Advanced JavaScript, asynchronous programming and event loop.', stageRef: 5 },
-  { week: 7, title: 'TypeScript and React.', stageRef: 5 },
-  { week: 8, title: 'Node.js and Express.', stageRef: 6 },
-  { week: 9, title: 'REST APIs, authentication and authorization.', stageRef: 6 },
-  { week: 10, title: 'PostgreSQL, SQL and database design.', stageRef: 7 },
-  { week: 11, title: 'Redis, caching and database optimization.', stageRef: 7 },
-  { week: 12, title: 'Docker, deployment and cloud fundamentals.', stageRef: 9 },
+  { week: 1, title: 'Computer fundamentals: CPU, RAM, storage, OS and memory', stageRef: 1 },
+  { week: 2, title: 'Java programming, OOP and memory management', stageRef: 2 },
+  { week: 3, title: 'Git, GitHub, Linux and command line', stageRef: 4 },
+  { week: 4, title: 'HTTP, DNS, TCP/IP and networking', stageRef: 3 },
+  { week: 5, title: 'HTML, CSS and JavaScript foundations', stageRef: 5 },
+  { week: 6, title: 'Advanced JavaScript, asynchronous programming and event loop', stageRef: 5 },
+  { week: 7, title: 'TypeScript and React', stageRef: 5 },
+  { week: 8, title: 'Node.js and Express', stageRef: 6 },
+  { week: 9, title: 'REST APIs, authentication and authorization', stageRef: 6 },
+  { week: 10, title: 'PostgreSQL, SQL and database design', stageRef: 7 },
+  { week: 11, title: 'Redis, caching and database optimization', stageRef: 7 },
+  { week: 12, title: 'Docker, deployment and cloud fundamentals', stageRef: 9 },
 ];
 
 export const DSA_DAILY_STRUCTURE = [
-  { minutes: 15, phase: 'Concept revision' },
-  { minutes: 35, phase: 'Problem solving' },
+  { minutes: 15, phase: 'Learn or revise a pattern' },
+  { minutes: 35, phase: 'Solve one or two problems' },
   { minutes: 10, phase: 'Review mistakes and complexity' },
 ] as const;
 
 export const DSA_RESOURCES = [
-  { name: 'Striver / takeUforward', url: 'https://www.youtube.com/@takeUForward' },
+  { name: 'Striver / takeUforward', url: 'https://www.youtube.com/@takeUforward' },
   { name: 'LeetCode', url: 'https://leetcode.com/' },
-  { name: 'NeetCode', url: 'https://neetcode.io/roadmap' },
+  { name: 'NeetCode Roadmap', url: 'https://neetcode.io/roadmap' },
 ] as const;
+
+export const RECOMMENDED_CHANNEL_URLS: Record<string, string> = {
+  CrashCourse: 'https://www.youtube.com/@crashcourse',
+  'Neso Academy': 'https://www.youtube.com/@nesoacademy',
+  'Gate Smashers': 'https://www.youtube.com/@GateSmashers',
+  Fireship: 'https://www.youtube.com/@Fireship',
+  'MIT Missing Semester': 'https://missing.csail.mit.edu/',
+  'Web Dev Simplified': 'https://www.youtube.com/@WebDevSimplified',
+  'Kevin Powell': 'https://www.youtube.com/@KevinPowell',
+  'Hussein Nasser': 'https://www.youtube.com/@hnasr',
+  'Java Guides': 'https://www.youtube.com/@JavaGuides',
+  'IBM Technology': 'https://www.youtube.com/@IBMTechnology',
+  ByteByteGo: 'https://www.youtube.com/@ByteByteGo',
+  'Gaurav Sen': 'https://www.youtube.com/@GauravSensei',
+  'TechWorld with Nana': 'https://www.youtube.com/@TechWorldwithNana',
+  'Abhishek Veeramalla': 'https://www.youtube.com/@AbhishekVeeramalla',
+  NetworkChuck: 'https://www.youtube.com/@NetworkChuck',
+  '3Blue1Brown': 'https://www.youtube.com/@3blue1brown',
+  StatQuest: 'https://www.youtube.com/@statquest',
+  'Andrej Karpathy': 'https://www.youtube.com/@AndrejKarpathy',
+  'Hugging Face Learn': 'https://huggingface.co/learn',
+};
+
+export function getChannelUrl(channelName: string): string | undefined {
+  return RECOMMENDED_CHANNEL_URLS[channelName];
+}
 
 interface RawStage {
   stageNumber: number;

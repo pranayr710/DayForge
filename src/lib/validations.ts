@@ -88,5 +88,6 @@ export const backupPayloadSchema = z.object({
     internshipApplications: z.array(z.any()),
     mastersMilestones: z.array(z.any()),
     universities: z.array(z.any()),
+    careerChecklist: z.array(z.any()).optional(),
   }),
 });

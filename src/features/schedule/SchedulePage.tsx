@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  ExternalLink,
   Filter,
   Pencil,
   Plus,
@@ -22,6 +23,7 @@ import {
 import { db } from '@/services/storage/db';
 import { DEFAULT_USER_ID } from '@/config/personalPlan';
 import { COLLEGE_CLASS_SLOTS } from '@/config/timetable';
+import { getQuickLinksForScheduleBlock } from '@/config/awareness';
 import { useIstClock } from '@/hooks/useIstClock';
 import { useFocusTimer } from '@/app/providers/FocusProvider';
 import { useToast } from '@/app/providers/ToastProvider';
@@ -39,6 +41,7 @@ import {
   dateKeyToUtcDate,
   formatShortDateLabel,
   formatTime24To12,
+  getDayOfWeekFromDateKey,
   getMonthCalendarDateKeys,
   getShortDayLabel,
   getWeekDateKeys,
@@ -494,6 +497,29 @@ export default function SchedulePage() {
                             </p>
                           )}
                         </button>
+                        {(() => {
+                          const links = getQuickLinksForScheduleBlock(
+                            block.title,
+                            getDayOfWeekFromDateKey(block.dateKey)
+                          );
+                          if (links.length === 0) return null;
+                          return (
+                            <div className="mt-1.5 flex flex-wrap gap-1.5">
+                              {links.map((lnk) => (
+                                <a
+                                  key={lnk.url}
+                                  href={lnk.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 rounded-full border border-[#8F87FA]/40 bg-[#635BDB]/12 px-2.5 py-0.5 text-[11px] font-medium text-[var(--df-accent-secondary)] transition-colors hover:bg-[#635BDB]/25 hover:text-white"
+                                >
+                                  <span>{lnk.label}</span>
+                                  <ExternalLink className="h-2.5 w-2.5" />
+                                </a>
+                              ))}
+                            </div>
+                          );
+                        })()}
                       </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">

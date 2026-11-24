@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 import type {
   AwarenessLog,
+  CareerChecklistItem,
   DsaProblem,
   FocusSession,
   HabitItem,
@@ -37,6 +38,7 @@ export class DayForgeDatabase extends Dexie {
   internshipApplications!: Table<InternshipApplication, string>;
   mastersMilestones!: Table<MastersMilestone, string>;
   universities!: Table<UniversityTarget, string>;
+  careerChecklist!: Table<CareerChecklistItem, string>;
 
   constructor() {
     super('DayForgeDB');
@@ -58,6 +60,9 @@ export class DayForgeDatabase extends Dexie {
       internshipApplications: 'id, userId, status, deadline',
       mastersMilestones: 'id, userId, order, status',
       universities: 'id, userId, applicationStatus, deadline',
+    });
+    this.version(2).stores({
+      careerChecklist: 'id, userId',
     });
   }
 }
