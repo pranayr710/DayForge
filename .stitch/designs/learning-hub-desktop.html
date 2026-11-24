@@ -1,0 +1,768 @@
+﻿<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Public+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-secondary": "#260d99", "on-primary-fixed-variant": "#3b2fb3", "on-secondary-fixed-variant": "#3e30ae", "tertiary-container": "#a55a00", "tertiary-fixed": "#ffdcc2", "surface-variant": "#33353a", "primary-fixed": "#e3dfff", "surface-container-high": "#282a2f", "inverse-surface": "#e2e2e9", "secondary": "#c5c0ff", "on-secondary-fixed": "#130067", "surface-container-highest": "#33353a", "primary-container": "#635bdb", "surface-dim": "#111318", "on-tertiary-container": "#ffede2", "on-primary": "#23099d", "surface-bright": "#37393f", "surface-container-lowest": "#0c0e13", "on-background": "#e2e2e9", "inverse-primary": "#544bcb", "surface-container": "#1e2025", "secondary-container": "#4033b1", "background": "#111318", "error": "#ffb4ab", "on-error-container": "#ffdad6", "on-tertiary-fixed": "#2e1500", "on-primary-fixed": "#120068", "on-error": "#690005", "surface-container-low": "#1a1b21", "secondary-fixed-dim": "#c5c0ff", "tertiary": "#ffb77b", "error-container": "#93000a", "surface": "#111318", "secondary-fixed": "#e3dfff", "primary-fixed-dim": "#c4c0ff", "primary": "#c4c0ff", "outline-variant": "#474554", "on-surface": "#e2e2e9", "on-tertiary-fixed-variant": "#6d3a00", "tertiary-fixed-dim": "#ffb77b", "on-surface-variant": "#c8c4d6", "on-primary-container": "#f2eeff", "on-tertiary": "#4d2700", "outline": "#918f9f", "inverse-on-surface": "#2e3036", "on-secondary-container": "#b5b0ff", "surface-tint": "#c4c0ff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": {}, "fontFamily": { "headline": ["Geist"], "display": ["Geist"], "body": ["Geist"], "label": ["Public Sans"] }, "fontSize": {} } } }</script></head><body class="bg-background font-body text-on-surface min-h-screen selection:bg-primary-container selection:text-on-primary-container"><aside class="fixed left-0 top-0 h-screen w-64 bg-surface-container-low z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="h-16 px-5 flex items-center justify-between"><div class="flex items-center gap-3"><img alt="DayForge Brand Mark" class="h-7 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrCiWbIze-Npk4-uWndb_DbdvZ1gZbVSj9sLR53nUuTkJjJNv3kk6ECTQTzvLRX9eJnxngKOBoJ7aFw0Fpctxv4j3Ms8otHZ2iQXTedYoue1HXiZWpCb6Z9k3x9KoPmKCFwjub12oLhvUU6qZlGhxDYbytn9MmdybVtySf_mcb_NLY2mxwN2KIaZJBh4xbItbRcy3P92ZRXWRc_4mdRhBY-U8_pXes34RhLtZNF4lNwo"/><div class="flex flex-col"><span class="text-sm font-headline font-semibold tracking-tight text-on-surface leading-tight">DayForge</span><span class="text-[10px] font-label text-on-surface-variant leading-none">v2.4 â€¢ Semester VI</span></div></div></div><div class="px-3 py-2"><nav class="flex flex-col gap-1" data-active-classes="bg-primary-container text-on-primary-container font-medium rounded-lg"><a class="flex items-center px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="dayforge-overview-dashboard" href="#">Overview</a><a class="flex items-center px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="dayforge-schedule-and-academic-timetable" href="#">Schedule</a><a class="flex items-center px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="dayforge-tasks-and-habits" href="#">Tasks</a><a aria-current="page" class="flex items-center px-3 py-2 transition-colors bg-primary-container text-on-primary-container font-medium rounded-lg" data-path="dayforge-learning-hub" href="#">Learning Hub</a><a class="flex items-center px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="dayforge-career-and-placements" href="#">Career &amp; Placements</a><a class="flex items-center px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="dayforge-projects" href="#">Projects</a><a class="flex items-center px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="dayforge-analytics" href="#">Analytics</a><a class="flex items-center px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="dayforge-settings" href="#">Settings</a></nav></div></div><div class="p-3 bg-surface-container-lowest/60 flex flex-col gap-2 rounded-t-xl"><div class="flex items-center justify-between px-2 text-[11px] text-on-surface-variant font-label"><span>âŒ˜K Command Menu</span><span class="material-symbols-outlined text-[14px]">keyboard_command_key</span></div><div class="flex items-center justify-between px-2 pt-1"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="text-[11px] font-label text-on-surface-variant">Offline-ready / Synced</span></div><button class="text-on-surface-variant hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[16px]">dock_to_left</span></button></div></div></aside><div class="pl-64 flex flex-col min-h-screen"><header class="fixed top-0 left-64 right-0 h-16 bg-surface/80 backdrop-blur-xl z-40 px-8 flex items-center justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex items-center gap-4 min-w-0"><img alt="DayForge Brand Mark" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/ALJJyrCiWbIze-Npk4-uWndb_DbdvZ1gZbVSj9sLR53nUuTkJjJNv3kk6ECTQTzvLRX9eJnxngKOBoJ7aFw0Fpctxv4j3Ms8otHZ2iQXTedYoue1HXiZWpCb6Z9k3x9KoPmKCFwjub12oLhvUU6qZlGhxDYbytn9MmdybVtySf_mcb_NLY2mxwN2KIaZJBh4xbItbRcy3P92ZRXWRc_4mdRhBY-U8_pXes34RhLtZNF4lNwo"/><div class="flex flex-col min-w-0"><span class="text-xs font-label text-on-surface-variant truncate">Good morning, Alex Â· Thursday, 24 Oct Â· IST</span><div class="flex items-center gap-2 text-xs font-headline font-medium text-on-surface truncate"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span><span class="truncate">Current block: 23CSE312 Distributed Systems Lab until 12:45 PM</span></div></div></div><div class="flex items-center gap-4 shrink-0"><button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary-container text-on-primary-container text-xs font-label font-medium hover:bg-secondary-container hover:text-on-secondary-container transition-colors"><span class="material-symbols-outlined text-[15px]">bolt</span><span>Start Focus Mode (25m)</span></button><button class="relative p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error"></span></button><div class="relative flex items-center pl-1"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-surface"></span></div></div></header><main class="w-full px-8 pt-16 bg-background flex-1"><div class="flex flex-col w-full pb-16">
+<!-- Top Navigation & Action Banner -->
+<div class="flex flex-col gap-6 pt-6 pb-6">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+<div class="flex flex-col">
+<div class="flex items-center gap-2 text-xs font-label uppercase tracking-widest text-on-surface-variant">
+<span>Curriculum</span>
+<span class="text-outline">/</span>
+<span class="text-primary font-medium">Semester VI</span>
+<span class="text-outline">/</span>
+<span>Computer Science &amp; Engineering Track</span>
+</div>
+<div class="flex items-baseline gap-3 mt-1.5">
+<h1 class="text-2xl font-headline font-semibold text-on-surface tracking-tight">Learning Hub</h1>
+<span class="text-xs font-label text-on-surface-variant font-mono">v6.2.0 â€¢ 16-Stage Specialization</span>
+</div>
+</div>
+<!-- Action Controls -->
+<div class="flex items-center gap-2.5 flex-wrap">
+<div class="relative inline-flex items-center">
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface text-xs font-label hover:bg-surface-bright transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">filter_list</span>
+<span>Filter: All Stages</span>
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant">expand_more</span>
+</button>
+</div>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface text-xs font-label hover:bg-surface-bright transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">file_download</span>
+<span>Export Syllabus</span>
+</button>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-container text-on-primary-container text-xs font-label font-medium hover:bg-secondary-container hover:text-on-secondary-container transition-all shadow-sm">
+<span class="material-symbols-outlined text-[16px]">add</span>
+<span>New Study Goal</span>
+</button>
+</div>
+</div>
+<!-- Segmented Track Tabs -->
+<div class="flex items-center justify-between overflow-x-auto pb-1 -mx-1 px-1">
+<div class="flex items-center gap-1.5 p-1 bg-surface-container-lowest rounded-xl shadow-inner">
+<button class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-surface-container-high text-on-surface text-xs font-label font-medium shadow-sm transition-all">
+<span class="material-symbols-outlined text-[15px] text-primary">view_timeline</span>
+<span>16-Stage Curriculum</span>
+<span class="px-1.5 py-0.2 rounded-full bg-primary/10 text-primary text-[10px] font-mono font-semibold">11/16</span>
+</button>
+<button class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container text-xs font-label transition-colors">
+<span class="material-symbols-outlined text-[15px]">code_blocks</span>
+<span>DSA Tracker (Java)</span>
+<span class="text-[10px] font-mono text-outline">340/500</span>
+</button>
+<button class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container text-xs font-label transition-colors">
+<span class="material-symbols-outlined text-[15px]">schedule</span>
+<span>Tech Awareness (8â€“9 PM)</span>
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+</button>
+<button class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container text-xs font-label transition-colors">
+<span class="material-symbols-outlined text-[15px]">map</span>
+<span>12-Week Roadmap</span>
+</button>
+</div>
+<div class="hidden xl:flex items-center gap-3 text-xs font-mono text-on-surface-variant">
+<span class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span> 10 Mastered
+        </span>
+<span class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span> 2 In Flight
+        </span>
+<span class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-surface-variant"></span> 4 Upcoming
+        </span>
+</div>
+</div>
+</div>
+<!-- Metric Strip (3 Compact Precision Cards) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+<!-- Card 1: Curriculum Progress -->
+<div class="relative overflow-hidden bg-surface-container-low rounded-xl p-4 flex flex-col justify-between shadow-sm">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="text-[11px] font-label font-medium uppercase tracking-wider text-on-surface-variant">Core Curriculum</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-2xl font-headline font-semibold text-on-surface font-mono">11 <span class="text-sm text-outline font-normal">/ 16 Stages</span></span>
+<span class="text-xs font-mono font-medium text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">68% Done</span>
+</div>
+</div>
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">account_tree</span>
+</div>
+</div>
+<!-- Segmented Bar -->
+<div class="mt-4">
+<div class="w-full bg-surface-container-highest rounded-full h-1.5 flex gap-0.5 overflow-hidden p-0.5">
+<div class="bg-emerald-500 h-full rounded-sm" style="width: 62.5%"></div>
+<div class="bg-tertiary h-full rounded-sm animate-pulse" style="width: 12.5%"></div>
+<div class="bg-surface-variant h-full rounded-sm" style="width: 25%"></div>
+</div>
+<div class="flex items-center justify-between mt-2 text-[11px] font-label">
+<span class="text-on-surface-variant truncate">Active: <span class="text-on-surface font-medium">Stage 11 Microservices</span></span>
+<span class="text-tertiary font-mono">Sprint 03</span>
+</div>
+</div>
+</div>
+<!-- Card 2: DSA Tracker -->
+<div class="relative overflow-hidden bg-surface-container-low rounded-xl p-4 flex flex-col justify-between shadow-sm">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="text-[11px] font-label font-medium uppercase tracking-wider text-on-surface-variant">DSA Master Log (Java)</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-2xl font-headline font-semibold text-on-surface font-mono">340 <span class="text-sm text-outline font-normal">/ 500 Solved</span></span>
+<span class="text-xs font-mono font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">68% Quota</span>
+</div>
+</div>
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+</div>
+</div>
+<div class="mt-4 flex flex-col gap-1.5">
+<div class="flex items-center justify-between text-[11px] font-label">
+<span class="text-on-surface-variant flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+            Today: <span class="text-on-surface font-medium">DP on Trees</span>
+</span>
+<span class="text-emerald-400 font-mono">35m logged</span>
+</div>
+<div class="flex items-center justify-between text-[11px] font-mono text-outline">
+<span>Revision backlog:</span>
+<span class="text-on-surface bg-surface-container px-1.5 py-0.5 rounded text-[10px]">14 problems due</span>
+</div>
+</div>
+</div>
+<!-- Card 3: Tech Awareness -->
+<div class="relative overflow-hidden bg-surface-container-low rounded-xl p-4 flex flex-col justify-between shadow-sm">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="text-[11px] font-label font-medium uppercase tracking-wider text-on-surface-variant">Daily Tech Awareness</span>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-2xl font-headline font-semibold text-on-surface font-mono">0 <span class="text-sm text-outline font-normal">/ 5 Read</span></span>
+<span class="text-xs font-mono font-medium text-tertiary bg-tertiary-container/30 px-1.5 py-0.5 rounded">20:00 IST</span>
+</div>
+</div>
+<div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[18px]">feed</span>
+</div>
+</div>
+<div class="mt-4">
+<div class="flex items-center justify-between text-[11px] font-label mb-1.5">
+<span class="text-on-surface-variant">Target Feeds (Tonight)</span>
+<span class="text-[10px] text-tertiary font-mono">Pending</span>
+</div>
+<div class="flex items-center gap-1.5 overflow-hidden">
+<span class="px-2 py-0.5 rounded bg-surface-container text-[10px] font-mono text-on-surface-variant truncate">ByteByteGo</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-[10px] font-mono text-on-surface-variant truncate">Hacker News</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-[10px] font-mono text-on-surface-variant truncate">Pragmatic Eng</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Split Layout: Workspace Grid (Left ~68%) + Detail Inspector (Right ~32%) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- LEFT: 16-Stage Curriculum Grid -->
+<div class="lg:col-span-8 flex flex-col gap-3">
+<div class="flex items-center justify-between px-1 mb-1">
+<div class="flex items-center gap-2">
+<span class="text-xs font-headline font-medium text-on-surface uppercase tracking-wider">Curriculum Pipeline</span>
+<span class="text-[11px] text-outline font-mono">(Stages 01 â€“ 16)</span>
+</div>
+<span class="text-xs text-on-surface-variant font-label">Click stage to inspect syllabus &amp; notes</span>
+</div>
+<!-- Stage Cards Stream -->
+<div class="flex flex-col gap-2.5">
+<!-- Stage 01 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">01</span>
+<div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">Computer Fundamentals &amp; Digital Logic</h2>
+<span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-medium">100%</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">Gates, Boolean Algebra, CPU architecture</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">CrashCourse</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-emerald-500 h-full w-full"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Stage 02 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">02</span>
+<div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">Programming Fundamentals in C/C++</h2>
+<span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-medium">100%</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">Pointers, Memory allocation, Compilation units</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">Neso Academy</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-emerald-500 h-full w-full"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Stage 03 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">03</span>
+<div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">Data Structures &amp; Algorithms in Java</h2>
+<span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-medium">100%</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">Trees, Graphs, Disjoint Sets, DP patterns</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">Striver / Abdul Bari</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-emerald-500 h-full w-full"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Stage 04 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">04</span>
+<div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">OOP &amp; Software Design Patterns</h2>
+<span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-medium">100%</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">SOLID, Factory, Observer, Decorator in Java</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">Christopher Okhravi</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-emerald-500 h-full w-full"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Stage 05 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">05</span>
+<div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">Computer Networks &amp; Protocols</h2>
+<span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-medium">100%</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">TCP/IP stack, TLS 1.3, HTTP/2 multiplexing, DNS</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">Hussein Nasser</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-emerald-500 h-full w-full"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Stage 06 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">06</span>
+<div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">Operating Systems &amp; Concurrency</h2>
+<span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-medium">100%</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">Virtual Memory, Mutex, Semaphores, Context Switching</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">Gate Smashers</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-emerald-500 h-full w-full"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Stage 07 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">07</span>
+<div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">Relational Database Systems &amp; SQL</h2>
+<span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-medium">100%</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">B+ Trees, ACID, Indexing, Query Optimization, Postgres</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">CMU Database Group</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-emerald-500 h-full w-full"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Stage 08 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">08</span>
+<div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">Web Architecture &amp; RESTful APIs</h2>
+<span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-medium">100%</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">HTTP verbs, JWT session tokens, OpenAPI specs</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">Traversy Media</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-emerald-500 h-full w-full"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Stage 09 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">09</span>
+<div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">System Design &amp; Distributed Fundamentals</h2>
+<span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-medium">100%</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">CAP Theorem, Caching layers, Sharding, Consistent Hashing</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">ByteByteGo</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-emerald-500 h-full w-full"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Stage 10 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">10</span>
+<div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">Docker, Containers &amp; Linux SysAdmin</h2>
+<span class="px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-medium">100%</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">cgroups, Namespaces, Multi-stage builds, systemd</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">TechWorld with Nana</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-emerald-500 h-full w-full"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Stage 11 (ACTIVE HIGHLIGHT) -->
+<div class="relative p-4 rounded-xl bg-surface-container-high shadow-lg transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer">
+<!-- Active Indicator Pill on Left Edge -->
+<div class="absolute left-0 top-3 bottom-3 w-1 bg-primary rounded-r-full"></div>
+<div class="flex items-start sm:items-center gap-3.5 min-w-0 pl-1">
+<span class="text-[11px] font-mono font-bold text-primary w-7 shrink-0">11</span>
+<div class="w-7 h-7 rounded-lg bg-primary-container text-on-primary-container flex items-center justify-center shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[16px] animate-spin" style="animation-duration: 4s;">autorenew</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2 flex-wrap">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">Microservices, gRPC &amp; Event Streaming</h2>
+<span class="px-2 py-0.5 rounded-full bg-tertiary-container/40 text-tertiary text-[10px] font-mono font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+                  45% In Progress
+                </span>
+<span class="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[9px] font-mono tracking-wider uppercase font-semibold">Inspector Active</span>
+</div>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-[11px] font-label text-on-surface-variant truncate">Protobuf v3, Kafka partitioning, OpenTelemetry tracing</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-primary bg-primary-container/20 px-1.5 py-0.2 rounded">Hussein Nasser &amp; ByteByteGo</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="flex flex-col items-end gap-1">
+<span class="text-[10px] font-mono text-tertiary">3 / 5 Units Done</span>
+<div class="w-24 bg-surface-container-highest rounded-full h-1.5 overflow-hidden">
+<div class="bg-primary h-full w-[45%] rounded-full"></div>
+</div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-primary">arrow_forward</span>
+</div>
+</div>
+<!-- Stage 12 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer opacity-70 hover:opacity-100">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">12</span>
+<div class="w-7 h-7 rounded-lg bg-surface-container-high text-outline flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">hourglass_empty</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">Cloud Architecture &amp; DevOps Pipelines</h2>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant text-[10px] font-mono">0% Unstarted</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">Terraform, Kubernetes Pod Specs, CI/CD Actions, IAM</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">AWS / Jeff Geerling</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-surface-variant h-full w-0"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Stage 13 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">13</span>
+<div class="w-7 h-7 rounded-lg bg-tertiary-container/30 text-tertiary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">sync</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">Distributed Systems &amp; Consensus Algorithms</h2>
+<span class="px-1.5 py-0.5 rounded bg-tertiary-container/30 text-tertiary text-[10px] font-mono font-medium">30% In Progress</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">Raft, Paxos, Vector Clocks, Byzantine Fault Tolerance</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">Martin Kleppmann</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-tertiary h-full w-[30%]"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Stage 14 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer opacity-70 hover:opacity-100">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">14</span>
+<div class="w-7 h-7 rounded-lg bg-surface-container-high text-outline flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">hourglass_empty</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">Security, Authentication &amp; Cryptography</h2>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant text-[10px] font-mono">0% Unstarted</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">OAuth 2.1, PKCE, RSA, Elliptic Curves, Zero-Trust</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">Computerphile</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-surface-variant h-full w-0"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Stage 15 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer opacity-70 hover:opacity-100">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">15</span>
+<div class="w-7 h-7 rounded-lg bg-surface-container-high text-outline flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">hourglass_empty</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">Machine Learning Fundamentals</h2>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant text-[10px] font-mono">0% Unstarted</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">Linear Algebra, Gradient Descent, Backprop, PyTorch</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">3Blue1Brown &amp; StatQuest</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-surface-variant h-full w-0"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+<!-- Stage 16 -->
+<div class="group p-3.5 rounded-xl bg-surface-container-low hover:bg-surface-container transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm cursor-pointer opacity-70 hover:opacity-100">
+<div class="flex items-start sm:items-center gap-3.5 min-w-0">
+<span class="text-[11px] font-mono font-bold text-outline w-7 shrink-0">16</span>
+<div class="w-7 h-7 rounded-lg bg-surface-container-high text-outline flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[16px]">hourglass_empty</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<h2 class="text-xs font-headline font-semibold text-on-surface truncate">AI Engineering &amp; LLM Systems</h2>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant text-[10px] font-mono">0% Unstarted</span>
+</div>
+<div class="flex items-center gap-2 mt-0.5">
+<span class="text-[11px] font-label text-on-surface-variant truncate">Transformer architectures, RAG pipelines, Vector DBs, Fine-tuning</span>
+<span class="text-outline text-[10px]">â€¢</span>
+<span class="text-[10px] font-mono text-outline bg-surface-container px-1.5 py-0.2 rounded">Andrej Karpathy</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 shrink-0 self-end sm:self-center">
+<div class="w-20 bg-surface-container-highest rounded-full h-1 overflow-hidden">
+<div class="bg-surface-variant h-full w-0"></div>
+</div>
+<span class="material-symbols-outlined text-[18px] text-outline group-hover:text-on-surface transition-colors">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT: Side Detail Inspector Panel (Stage 11 Active) -->
+<div class="lg:col-span-4 flex flex-col gap-4 sticky top-20">
+<!-- Inspector Main Card -->
+<div class="bg-surface-container-low rounded-xl p-5 shadow-md flex flex-col gap-5">
+<!-- Inspector Header -->
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<span class="text-[10px] font-mono font-bold tracking-widest text-primary uppercase">Stage 11 Inspector</span>
+<span class="w-1 h-1 rounded-full bg-outline"></span>
+<span class="text-[10px] font-mono text-tertiary">Unit 3 of 5</span>
+</div>
+<h3 class="text-base font-headline font-semibold text-on-surface mt-1 leading-snug">Microservices, gRPC &amp; Event Streaming</h3>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[18px]">open_in_full</span>
+</button>
+<button class="p-1 rounded hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+</div>
+<!-- Status & Primary Badges -->
+<div class="flex items-center justify-between p-2.5 rounded-lg bg-surface-container">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+<span class="text-xs font-label text-on-surface font-medium">In Progress (45% completed)</span>
+</div>
+<span class="text-[11px] font-mono text-on-surface-variant">Due: 27 Oct</span>
+</div>
+<!-- Learning Objectives -->
+<div class="flex flex-col gap-2">
+<span class="text-[11px] font-label font-medium uppercase tracking-wider text-on-surface-variant">Core Learning Objectives</span>
+<ul class="text-xs text-on-surface-variant space-y-1.5 pl-1">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[14px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span>Protocol Buffers schema definitions &amp; binary serialization format</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[14px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span>Unary vs Client/Server Streaming over HTTP/2 framing</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[14px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span>Kafka consumer groups, offset management &amp; rebalancing</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-[14px] text-primary shrink-0 mt-0.5">check_circle</span>
+<span>Saga orchestration and dead-letter queues in distributed architectures</span>
+</li>
+</ul>
+</div>
+<!-- Interactive Concept Checklist -->
+<div class="flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<span class="text-[11px] font-label font-medium uppercase tracking-wider text-on-surface-variant">Concept Verification Checklist</span>
+<span class="text-[10px] font-mono text-primary">2 / 5 Verified</span>
+</div>
+<div class="flex flex-col gap-1.5 text-xs">
+<!-- Checked item 1 -->
+<label class="flex items-start gap-2.5 p-2 rounded-lg bg-surface-container/60 hover:bg-surface-container transition-colors cursor-pointer">
+<input checked="" class="mt-0.5 rounded accent-primary text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="text-on-surface line-through opacity-70">Define Protocol Buffer v3 schemas for User &amp; Auth service</span>
+</label>
+<!-- Checked item 2 -->
+<label class="flex items-start gap-2.5 p-2 rounded-lg bg-surface-container/60 hover:bg-surface-container transition-colors cursor-pointer">
+<input checked="" class="mt-0.5 rounded accent-primary text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="text-on-surface line-through opacity-70">Implement gRPC unary server &amp; client stub in Go / Java</span>
+</label>
+<!-- Pending item 3 -->
+<label class="flex items-start gap-2.5 p-2 rounded-lg bg-surface-container/30 hover:bg-surface-container transition-colors cursor-pointer">
+<input class="mt-0.5 rounded accent-primary text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="text-on-surface">Bidirectional streaming for real-time telemetry metrics</span>
+</label>
+<!-- Pending item 4 -->
+<label class="flex items-start gap-2.5 p-2 rounded-lg bg-surface-container/30 hover:bg-surface-container transition-colors cursor-pointer">
+<input class="mt-0.5 rounded accent-primary text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="text-on-surface">Distributed Tracing with OpenTelemetry and Jaeger</span>
+</label>
+<!-- Pending item 5 -->
+<label class="flex items-start gap-2.5 p-2 rounded-lg bg-surface-container/30 hover:bg-surface-container transition-colors cursor-pointer">
+<input class="mt-0.5 rounded accent-primary text-primary focus:ring-0 cursor-pointer" type="checkbox"/>
+<span class="text-on-surface">Saga pattern choreography for distributed transactions</span>
+</label>
+</div>
+</div>
+<!-- Weekly Assignment Card -->
+<div class="p-3.5 rounded-xl bg-surface-container-high flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-mono uppercase tracking-wider text-tertiary font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">assignment</span>
+              Weekly Lab Milestone
+            </span>
+<span class="text-[10px] font-mono text-outline">Due Sun 27 Oct</span>
+</div>
+<p class="text-xs text-on-surface leading-relaxed">
+            Build an event-driven Order-to-Payment pipeline with Apache Kafka and gRPC dead-letter queues. Include health-check probes.
+          </p>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-2 py-0.5 rounded bg-surface-container text-[10px] font-mono text-on-surface-variant">Kafka 3.4</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-[10px] font-mono text-on-surface-variant">Protobuf 3</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-[10px] font-mono text-on-surface-variant">Docker Compose</span>
+</div>
+</div>
+<!-- Personal Markdown Notes & Code Scratchpad -->
+<div class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="text-[11px] font-label font-medium uppercase tracking-wider text-on-surface-variant">Revision Scratchpad</span>
+<span class="text-[10px] font-mono text-outline">Auto-saved 4m ago</span>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-3 font-mono text-[11px] leading-relaxed text-on-surface-variant flex flex-col gap-2 shadow-inner">
+<div class="flex items-center justify-between text-outline text-[10px] pb-1 border-b border-surface-variant/40">
+<span>notes_stage11.proto</span>
+<span>SYNTAX: PROTO3</span>
+</div>
+<div class="space-y-0.5 text-[11px]">
+<div><span class="text-primary">syntax</span> = <span class="text-emerald-400">"proto3"</span>;</div>
+<div class="text-outline">// Remember: field numbers 1-15 take 1 byte</div>
+<div><span class="text-tertiary">message</span> <span class="text-on-surface">OrderStreamRequest</span> {</div>
+<div class="pl-4"><span class="text-primary">string</span> order_id = <span class="text-emerald-400">1</span>;</div>
+<div class="pl-4"><span class="text-primary">int64</span> timestamp_epoch = <span class="text-emerald-400">2</span>;</div>
+<div>}</div>
+</div>
+</div>
+</div>
+<!-- Quick Action Buttons -->
+<div class="flex flex-col sm:flex-row gap-2 pt-1">
+<button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-surface-container-high text-on-surface text-xs font-label hover:bg-surface-bright transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">menu_book</span>
+<span>Curated Resources</span>
+</button>
+<button class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-primary-container text-on-primary-container text-xs font-label font-medium hover:bg-secondary-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">timer</span>
+<span>Log 45m Focus</span>
+</button>
+</div>
+</div>
+<!-- Quick Resource Bookmarks -->
+<div class="bg-surface-container-low rounded-xl p-4 shadow-sm flex flex-col gap-3">
+<span class="text-[11px] font-label font-medium uppercase tracking-wider text-on-surface-variant">Recommended Media</span>
+<div class="flex flex-col gap-2">
+<a class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container transition-colors group" href="#">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[18px] text-error">smart_display</span>
+<div class="flex flex-col">
+<span class="text-xs font-headline font-medium text-on-surface group-hover:text-primary transition-colors">Hussein Nasser: gRPC Deep Dive</span>
+<span class="text-[10px] font-mono text-outline">HTTP/2 vs HTTP/1.1 Multiplexing â€¢ 42 mins</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-[14px] text-outline group-hover:text-on-surface transition-colors">launch</span>
+</a>
+<a class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container transition-colors group" href="#">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-[18px] text-primary">feed</span>
+<div class="flex flex-col">
+<span class="text-xs font-headline font-medium text-on-surface group-hover:text-primary transition-colors">ByteByteGo Newsletter #89</span>
+<span class="text-[10px] font-mono text-outline">Kafka under the hood: Log Segmenting â€¢ 12 mins read</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-[14px] text-outline group-hover:text-on-surface transition-colors">launch</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>
