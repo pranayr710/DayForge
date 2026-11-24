@@ -2,42 +2,97 @@
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/jetbrains-mono";
 
+/* ==========================================================================
+   DayForge — Aurora Glass design system
+   Living aurora light behind layered frosted glass, hairline gradient
+   borders, glow, and spring motion. Light + dark aware.
+   ========================================================================== */
+
+@theme {
+  --font-sans: "Geist Variable", "Geist", Inter, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
+}
+
 @layer base {
   :root {
-    --df-bg: #F4F6FA;
-    --df-secondary: rgba(255, 255, 255, 0.72);
-    --df-elevated: rgba(255, 255, 255, 0.88);
+    /* Surfaces */
+    --df-bg: #F3F4FA;
+    --df-bg-deep: #E9EBF5;
+    --df-secondary: rgba(255, 255, 255, 0.62);
+    --df-elevated: rgba(255, 255, 255, 0.82);
     --df-solid-surface: #FFFFFF;
-    --df-border: rgba(15, 23, 42, 0.09);
-    --df-border-strong: rgba(15, 23, 42, 0.16);
-    --df-specular: rgba(255, 255, 255, 0.9);
-    --df-shadow: 0 8px 30px -12px rgba(15, 23, 42, 0.08);
+    --df-inset: rgba(15, 23, 42, 0.035);
+    --df-border: rgba(15, 23, 42, 0.08);
+    --df-border-strong: rgba(15, 23, 42, 0.15);
+    --df-specular: rgba(255, 255, 255, 0.95);
+    --df-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 40px -18px rgba(56, 48, 163, 0.18);
+    --df-shadow-lg: 0 30px 80px -30px rgba(56, 48, 163, 0.35);
+
+    /* Aurora palette */
     --df-accent: #635BDB;
     --df-accent-secondary: #8178F5;
+    --df-violet: #A78BFA;
+    --df-cyan: #0891B2;
+    --df-pink: #DB2777;
+    --df-mint: #059669;
     --df-success: #16A34A;
     --df-warning: #D97706;
     --df-error: #DC2626;
-    --df-text: #111318;
-    --df-text-muted: #4B5563;
+
+    /* Glass edge gradient (hairline) */
+    --df-edge-a: rgba(99, 91, 219, 0.28);
+    --df-edge-b: rgba(15, 23, 42, 0.05);
+    --df-edge-c: rgba(8, 145, 178, 0.18);
+
+    /* Aurora blobs */
+    --df-aurora-1: rgba(129, 120, 245, 0.32);
+    --df-aurora-2: rgba(34, 211, 238, 0.20);
+    --df-aurora-3: rgba(244, 114, 182, 0.16);
+    --df-aurora-4: rgba(52, 211, 153, 0.12);
+    --df-grain-opacity: 0.035;
+
+    --df-text: #0E1020;
+    --df-text-muted: #545B6E;
+    --df-text-faint: #8A90A2;
     color-scheme: light;
   }
 
   html.dark {
-    --df-bg: #0D0F14;
-    --df-secondary: rgba(25, 29, 37, 0.62);
-    --df-elevated: rgba(34, 40, 52, 0.74);
-    --df-solid-surface: #161A22;
-    --df-border: rgba(255, 255, 255, 0.085);
-    --df-border-strong: rgba(255, 255, 255, 0.15);
-    --df-specular: rgba(255, 255, 255, 0.075);
-    --df-shadow: 0 12px 36px -16px rgba(0, 0, 0, 0.65);
-    --df-accent: #635BDB;
-    --df-accent-secondary: #8178F5;
-    --df-success: #16A34A;
-    --df-warning: #E5A03C;
-    --df-error: #E05252;
-    --df-text: #F3F4F6;
-    --df-text-muted: #9CA3AF;
+    --df-bg: #07080D;
+    --df-bg-deep: #040509;
+    --df-secondary: rgba(20, 22, 34, 0.55);
+    --df-elevated: rgba(30, 33, 50, 0.68);
+    --df-solid-surface: #12141F;
+    --df-inset: rgba(255, 255, 255, 0.025);
+    --df-border: rgba(255, 255, 255, 0.075);
+    --df-border-strong: rgba(255, 255, 255, 0.14);
+    --df-specular: rgba(255, 255, 255, 0.09);
+    --df-shadow: 0 1px 1px rgba(0, 0, 0, 0.3), 0 20px 50px -24px rgba(0, 0, 0, 0.85);
+    --df-shadow-lg: 0 40px 100px -30px rgba(0, 0, 0, 0.9);
+
+    --df-accent: #6D64F0;
+    --df-accent-secondary: #8F87FA;
+    --df-violet: #B79CFF;
+    --df-cyan: #5EE7F7;
+    --df-pink: #F59AC8;
+    --df-mint: #5EEAB0;
+    --df-success: #22C55E;
+    --df-warning: #F0B455;
+    --df-error: #F06A6A;
+
+    --df-edge-a: rgba(167, 139, 250, 0.38);
+    --df-edge-b: rgba(255, 255, 255, 0.04);
+    --df-edge-c: rgba(94, 231, 247, 0.22);
+
+    --df-aurora-1: rgba(109, 100, 240, 0.58);
+    --df-aurora-2: rgba(34, 211, 238, 0.30);
+    --df-aurora-3: rgba(217, 70, 239, 0.26);
+    --df-aurora-4: rgba(16, 185, 129, 0.18);
+    --df-grain-opacity: 0.05;
+
+    --df-text: #F4F5FB;
+    --df-text-muted: #9EA3B8;
+    --df-text-faint: #6B7088;
     color-scheme: dark;
   }
 
@@ -47,57 +102,452 @@
     padding: 0;
     background-color: var(--df-bg);
     color: var(--df-text);
-    font-family: "Geist Variable", "Geist", Inter, system-ui, -apple-system, sans-serif;
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: rgba(129, 120, 245, 0.35);
+    color: inherit;
   }
 
   .font-mono-tabular {
-    font-family: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
   }
 
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
+
+  /* Native controls follow the theme */
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    opacity: 0.55;
+    cursor: pointer;
+  }
+  html.dark input[type="date"]::-webkit-calendar-picker-indicator,
+  html.dark input[type="time"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
+
+  select option {
+    background: var(--df-solid-surface);
+    color: var(--df-text);
+  }
+
+  :focus-visible {
+    outline: none;
+  }
 }
 
-/* Subtle ambient atmospheric backdrop so frosted glass has depth */
+/* ==========================================================================
+   Living aurora backdrop
+   ========================================================================== */
+
 .df-ambient-canvas {
-  background-image:
-    radial-gradient(60% 45% at 12% 0%, rgba(99, 91, 219, 0.13) 0%, transparent 65%),
-    radial-gradient(50% 40% at 88% 12%, rgba(129, 120, 245, 0.08) 0%, transparent 60%),
-    radial-gradient(45% 45% at 50% 100%, rgba(22, 163, 74, 0.04) 0%, transparent 65%);
-  background-attachment: fixed;
+  position: relative;
+  isolation: isolate;
 }
 
-html:not(.dark) .df-ambient-canvas {
-  background-image:
-    radial-gradient(60% 45% at 12% 0%, rgba(99, 91, 219, 0.09) 0%, transparent 65%),
-    radial-gradient(50% 40% at 88% 12%, rgba(129, 120, 245, 0.07) 0%, transparent 60%);
+.df-aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 80% at 50% -20%, transparent 40%, var(--df-bg-deep) 100%),
+    var(--df-bg);
 }
 
-/* Smoked Glass Surfaces */
+.df-aurora__blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  will-change: transform;
+  mix-blend-mode: normal;
+}
+
+html.dark .df-aurora__blob {
+  mix-blend-mode: screen;
+}
+
+.df-aurora__blob--1 {
+  width: 62vmax;
+  height: 46vmax;
+  left: -14vmax;
+  top: -22vmax;
+  background: radial-gradient(closest-side, var(--df-aurora-1), transparent 72%);
+  animation: df-drift-1 28s ease-in-out infinite alternate;
+}
+
+.df-aurora__blob--2 {
+  width: 52vmax;
+  height: 40vmax;
+  right: -16vmax;
+  top: -8vmax;
+  background: radial-gradient(closest-side, var(--df-aurora-2), transparent 72%);
+  animation: df-drift-2 34s ease-in-out infinite alternate;
+}
+
+.df-aurora__blob--3 {
+  width: 46vmax;
+  height: 36vmax;
+  left: 28vmax;
+  top: 18vmax;
+  background: radial-gradient(closest-side, var(--df-aurora-3), transparent 72%);
+  animation: df-drift-3 40s ease-in-out infinite alternate;
+}
+
+.df-aurora__blob--4 {
+  width: 56vmax;
+  height: 34vmax;
+  left: -10vmax;
+  bottom: -24vmax;
+  background: radial-gradient(closest-side, var(--df-aurora-4), transparent 72%);
+  animation: df-drift-2 46s ease-in-out infinite alternate-reverse;
+}
+
+/* Film grain for a tactile, premium finish */
+.df-aurora__grain {
+  position: absolute;
+  inset: -50%;
+  opacity: var(--df-grain-opacity);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Fine dot grid that fades out toward the bottom */
+.df-aurora__grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 1px 1px, var(--df-border) 1px, transparent 0);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(90% 60% at 50% 0%, #000 10%, transparent 75%);
+  -webkit-mask-image: radial-gradient(90% 60% at 50% 0%, #000 10%, transparent 75%);
+  opacity: 0.55;
+}
+
+@keyframes df-drift-1 {
+  0% { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
+  50% { transform: translate3d(8vmax, 6vmax, 0) scale(1.12) rotate(12deg); }
+  100% { transform: translate3d(14vmax, -2vmax, 0) scale(0.95) rotate(-6deg); }
+}
+
+@keyframes df-drift-2 {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-10vmax, 8vmax, 0) scale(1.15); }
+  100% { transform: translate3d(-4vmax, 14vmax, 0) scale(0.92); }
+}
+
+@keyframes df-drift-3 {
+  0% { transform: translate3d(0, 0, 0) scale(0.9); }
+  50% { transform: translate3d(-12vmax, -6vmax, 0) scale(1.1); }
+  100% { transform: translate3d(6vmax, -12vmax, 0) scale(1); }
+}
+
+/* ==========================================================================
+   Glass surfaces with hairline gradient edge + cursor spotlight
+   ========================================================================== */
+
+@layer components {
+.df-glass,
+.df-glass-elevated {
+  position: relative;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
 .df-glass {
   background-color: var(--df-secondary);
-  backdrop-filter: blur(20px) saturate(155%);
-  -webkit-backdrop-filter: blur(20px) saturate(155%);
-  border: 1px solid var(--df-border);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
   box-shadow: inset 0 1px 0 0 var(--df-specular), var(--df-shadow);
 }
 
 .df-glass-elevated {
   background-color: var(--df-elevated);
-  backdrop-filter: blur(24px) saturate(170%);
-  -webkit-backdrop-filter: blur(24px) saturate(170%);
-  border: 1px solid var(--df-border-strong);
-  box-shadow: inset 0 1px 0 0 var(--df-specular), var(--df-shadow);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  box-shadow: inset 0 1px 0 0 var(--df-specular), var(--df-shadow-lg);
 }
 
-/* Custom restrained scrollbar */
+/* Gradient hairline border painted with a masked pseudo-element */
+.df-glass::before,
+.df-glass-elevated::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    145deg,
+    var(--df-edge-a) 0%,
+    var(--df-edge-b) 38%,
+    var(--df-edge-b) 62%,
+    var(--df-edge-c) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Cursor-following spotlight (driven by --mx/--my set from Card) */
+.df-spotlight::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  background: radial-gradient(
+    420px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(143, 135, 250, 0.10),
+    transparent 45%
+  );
+  z-index: 0;
+}
+
+.df-spotlight:hover::after {
+  opacity: 1;
+}
+
+html:not(.dark) .df-spotlight::after {
+  background: radial-gradient(
+    420px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(99, 91, 219, 0.07),
+    transparent 45%
+  );
+}
+
+/* Keep card content above decorative layers */
+.df-glass > :where(:not(.absolute, .fixed, .sticky)),
+.df-glass-elevated > :where(:not(.absolute, .fixed, .sticky)) {
+  position: relative;
+  z-index: 1;
+}
+} /* end @layer components */
+
+/* Animated conic "live" border for hero / active surfaces */
+.df-live-border {
+  position: relative;
+  isolation: isolate;
+}
+
+.df-live-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--df-angle, 0deg),
+    rgba(143, 135, 250, 0.0) 0deg,
+    rgba(143, 135, 250, 0.9) 60deg,
+    rgba(94, 231, 247, 0.85) 120deg,
+    rgba(245, 154, 200, 0.6) 180deg,
+    rgba(143, 135, 250, 0.0) 240deg,
+    rgba(143, 135, 250, 0.0) 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: df-spin-angle 6s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@property --df-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes df-spin-angle {
+  to { --df-angle: 360deg; }
+}
+
+/* ==========================================================================
+   Typography & accents
+   ========================================================================== */
+
+.df-text-gradient {
+  background: linear-gradient(
+    100deg,
+    var(--df-text) 0%,
+    var(--df-text) 35%,
+    var(--df-accent-secondary) 65%,
+    var(--df-cyan) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.df-text-aurora {
+  background: linear-gradient(
+    90deg,
+    var(--df-accent-secondary),
+    var(--df-violet),
+    var(--df-cyan),
+    var(--df-pink),
+    var(--df-accent-secondary)
+  );
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: df-pan 12s linear infinite;
+}
+
+.df-eyebrow {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--df-text-faint);
+}
+
+.df-hairline {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--df-border-strong), transparent);
+}
+
+/* Inset well used for list rows inside cards */
+.df-well {
+  background: var(--df-inset);
+  border: 1px solid var(--df-border);
+}
+
+/* Glow utilities */
+.df-glow-accent {
+  box-shadow:
+    0 0 0 1px rgba(143, 135, 250, 0.35),
+    0 0 24px -4px rgba(109, 100, 240, 0.55),
+    0 0 60px -12px rgba(94, 231, 247, 0.35);
+}
+
+.df-dot-live {
+  position: relative;
+}
+
+.df-dot-live::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  border: 1.5px solid currentColor;
+  opacity: 0;
+  animation: df-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes df-ping {
+  0% { transform: scale(0.6); opacity: 0.8; }
+  80%, 100% { transform: scale(1.8); opacity: 0; }
+}
+
+@keyframes df-pan {
+  to { background-position: 300% 0; }
+}
+
+/* Progress shimmer */
+.df-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.df-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 80%
+  );
+  transform: translateX(-100%);
+  animation: df-sweep 2.8s ease-in-out infinite;
+}
+
+@keyframes df-sweep {
+  0% { transform: translateX(-100%); }
+  60%, 100% { transform: translateX(100%); }
+}
+
+/* Primary-button light sweep on hover */
+.df-btn-shine {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.df-btn-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.35) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.df-btn-shine:hover::after {
+  transform: translateX(120%);
+}
+
+/* Skeleton shimmer */
+.df-skeleton {
+  background: linear-gradient(
+    100deg,
+    var(--df-inset) 30%,
+    var(--df-border-strong) 50%,
+    var(--df-inset) 70%
+  );
+  background-size: 300% 100%;
+  animation: df-pan 2.4s ease-in-out infinite;
+}
+
+/* Breathing glow (focus orb) */
+@keyframes df-breathe {
+  0%, 100% { transform: scale(0.94); opacity: 0.55; }
+  50% { transform: scale(1.06); opacity: 0.95; }
+}
+
+.df-breathe {
+  animation: df-breathe 5s ease-in-out infinite;
+}
+
+@keyframes df-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.df-float {
+  animation: df-float 6s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   Scrollbar & utilities
+   ========================================================================== */
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -105,14 +555,51 @@ html:not(.dark) .df-ambient-canvas {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(156, 163, 175, 0.22);
+  background: linear-gradient(180deg, rgba(143, 135, 250, 0.28), rgba(94, 231, 247, 0.18));
   border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(156, 163, 175, 0.38);
+  background: linear-gradient(180deg, rgba(143, 135, 250, 0.5), rgba(94, 231, 247, 0.35));
+  background-clip: padding-box;
 }
 
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Recharts polish */
+.recharts-cartesian-grid line {
+  stroke: var(--df-border);
+}
+
+.recharts-text {
+  fill: var(--df-text-faint);
+}
+
+.recharts-default-tooltip {
+  background: var(--df-elevated) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--df-border-strong) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--df-shadow-lg);
+}
+
+/* Respect reduced motion everywhere */
+@media (prefers-reduced-motion: reduce) {
+  .df-aurora__blob,
+  .df-live-border::before,
+  .df-text-aurora,
+  .df-shimmer::after,
+  .df-skeleton,
+  .df-breathe,
+  .df-float,
+  .df-dot-live::after {
+    animation: none !important;
+  }
+  .df-btn-shine::after {
+    transition: none;
+  }
 }

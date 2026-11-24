@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
+import { motion, useReducedMotion } from 'framer-motion';
 import {
   ArrowRight,
   CalendarClock,
@@ -38,7 +39,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input, Select } from '@/components/ui/FormControls';
-import { ProgressBar } from '@/components/ui/Primitives';
+import { AnimatedNumber, ProgressBar, ProgressRing, Reveal } from '@/components/ui/Primitives';
 import { EmptyState } from '@/components/shared/SharedComponents';
 import { cn } from '@/lib/utils';
 import type { ResolvedScheduleBlock, ScheduleCategory, TaskCategory, TaskPriority } from '@/types';
@@ -299,615 +300,776 @@ export default function DashboardPage() {
     await toggleScheduleBlockCompleted(block);
   }
 
+  const reduced = useReducedMotion();
+  const currentDuration = currentBlock ? currentBlock.endMinutes - currentBlock.startMinutes : 0;
+  const currentProgressPct =
+    currentBlock && currentDuration > 0
+      ? Math.min(100, Math.max(0, ((currentDuration - remainingMinutes) / currentDuration) * 100))
+      : 0;
+  const focusSessionsTodayCount = focusSessions.filter((s) => s.dateKey === istNow.dateKey).length;
+  const pendingTaskCount = tasks.filter((t) => !t.completed).length;
+
   return (
     <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs font-medium text-[#8178F5]">
-            {istNow.dayName}, {istNow.formattedDate} · {profile?.semester ?? 'Semester VI'}
-          </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[var(--df-text)]">
-            {getGreeting(istNow.hour)}, {profile?.displayName ?? 'Sujith'}
-          </h1>
-          <p className="mt-0.5 text-xs text-[var(--df-text-muted)]">
-            Plan your day. Build your future. · {todayPlacement.focus} day
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Link to="/schedule">
-            <Button variant="outline" size="sm">
-              <CalendarClock className="h-3.5 w-3.5" />
-              Full Timetable
-            </Button>
-          </Link>
-          <Link to="/tasks">
-            <Button variant="primary" size="sm">
-              <Plus className="h-3.5 w-3.5" />
-              New Task
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      {/* Daily Overview Strip */}
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label="Daily overview">
-        <Card interactive>
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between text-xs text-[var(--df-text-muted)]">
-              <span>Tasks Completed</span>
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#635BDB]/15 text-[#8178F5]">
-                <CheckCircle2 className="h-4 w-4" />
+      {/* ============ HERO ============ */}
+      <section className="relative">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <motion.div
+            initial={reduced ? false : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="min-w-0"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full df-well px-3 py-1 text-[11px] font-medium text-[var(--df-text-muted)]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#5EE7F7] shadow-[0_0_8px_#5EE7F7]" />
+                {istNow.dayName}, {istNow.formattedDate}
+              </span>
+              <span className="inline-flex items-center rounded-full df-well px-3 py-1 text-[11px] font-medium text-[var(--df-text-muted)]">
+                {profile?.semester ?? 'Semester VI'}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[#8F87FA]/30 bg-[#6D64F0]/10 px-3 py-1 text-[11px] font-medium text-[var(--df-accent-secondary)]">
+                <Sparkles className="h-3 w-3" />
+                {todayPlacement.focus} day
               </span>
             </div>
-            <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="font-mono-tabular text-2xl font-semibold text-[var(--df-text)]">
-                {completedTodayTasks}
-              </span>
-              <span className="font-mono-tabular text-sm text-[var(--df-text-muted)]">
-                / {todayTasks.length}
-              </span>
-            </div>
-            <ProgressBar
-              className="mt-3"
-              value={
-                todayTasks.length > 0
-                  ? (completedTodayTasks / todayTasks.length) * 100
-                  : 0
-              }
-            />
-          </CardContent>
-        </Card>
-
-        <Card interactive>
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between text-xs text-[var(--df-text-muted)]">
-              <span>Focus Time Today</span>
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#16A34A]/15 text-[#22C55E]">
-                <Timer className="h-4 w-4" />
-              </span>
-            </div>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-mono-tabular text-2xl font-semibold text-[var(--df-text)]">
-                {formatDurationMinutes(focusMinutesToday)}
-              </span>
-              <span className="text-xs text-[var(--df-text-muted)]">logged</span>
-            </div>
-            <p className="mt-2.5 text-[11px] text-[var(--df-text-muted)]">
-              {focusSessions.filter((s) => s.dateKey === istNow.dateKey).length} focus session(s) recorded
+            <h1 className="mt-4 text-[34px] font-semibold leading-[1.05] tracking-[-0.045em] text-[var(--df-text)] sm:text-[46px]">
+              {getGreeting(istNow.hour)},
+              <br className="sm:hidden" />{' '}
+              <span className="df-text-aurora">{profile?.displayName ?? 'Sujith'}</span>
+            </h1>
+            <p className="mt-3 text-sm text-[var(--df-text-muted)]">
+              Plan your day. <span className="text-[var(--df-text)]">Build your future.</span>
             </p>
-          </CardContent>
-        </Card>
+          </motion.div>
 
-        <Card interactive>
-          <CardContent className="pt-4">
-            <div className="flex items-center justify-between text-xs text-[var(--df-text-muted)]">
-              <span>Daily Schedule Completion</span>
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#E5A03C]/15 text-[#E5A03C]">
-                <Sparkles className="h-4 w-4" />
-              </span>
-            </div>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-mono-tabular text-2xl font-semibold text-[var(--df-text)]">
-                {scheduleCompletionPct}%
-              </span>
-              <span className="font-mono-tabular text-xs text-[var(--df-text-muted)]">
-                ({completedTodayBlocks}/{actionableTodayBlocks.length} blocks)
-              </span>
-            </div>
-            <ProgressBar className="mt-3" value={scheduleCompletionPct} />
-          </CardContent>
-        </Card>
+          <motion.div
+            initial={reduced ? false : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+            className="flex flex-wrap items-center gap-2"
+          >
+            <Link to="/schedule">
+              <Button variant="outline" size="md" className="rounded-full">
+                <CalendarClock className="h-4 w-4" />
+                Full Timetable
+              </Button>
+            </Link>
+            <Link to="/tasks">
+              <Button variant="primary" size="md" className="rounded-full">
+                <Plus className="h-4 w-4" />
+                New Task
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
       </section>
 
-      {/* Main 2-Column Workspace */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
-        {/* Left Primary Column */}
-        <div className="space-y-6 lg:col-span-7">
-          {/* Now & Next Spotlight */}
-          <Card elevated>
-            <CardContent className="pt-4 sm:pt-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-[#16A34A]" />
-                    <span className="text-[11px] font-medium uppercase tracking-wider text-[var(--df-text-muted)]">
-                      Current Activity
-                    </span>
-                    {currentBlock && (
-                      <Badge tone="accent" className="font-mono-tabular">
-                        {formatDurationMinutes(remainingMinutes)} left
-                      </Badge>
+      {/* ============ NOW & NEXT SPOTLIGHT ============ */}
+      <Reveal delay={0.1}>
+        <Card elevated className={cn(currentBlock && 'df-live-border')}>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[radial-gradient(60%_120%_at_0%_0%,rgba(109,100,240,0.28),transparent_60%),radial-gradient(40%_100%_at_100%_100%,rgba(94,231,247,0.14),transparent_70%)]"
+          />
+          <CardContent className="pt-5 sm:pt-6 sm:pb-6">
+            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={cn(
+                      'df-dot-live h-2 w-2 rounded-full',
+                      currentBlock
+                        ? 'bg-[var(--df-success)] text-[var(--df-success)]'
+                        : 'bg-[var(--df-text-faint)] text-transparent'
                     )}
-                  </div>
-                  {currentBlock ? (
-                    <div className="mt-2">
-                      <p className="text-base font-semibold text-[var(--df-text)]">
-                        {currentBlock.subjectCode ? (
-                          <span className="mr-2 font-mono-tabular text-xs text-[#8178F5]">
-                            {currentBlock.subjectCode}
-                          </span>
-                        ) : null}
-                        {currentBlock.title}
-                      </p>
-                      <p className="mt-0.5 font-mono-tabular text-xs text-[var(--df-text-muted)]">
-                        {formatTime24To12(currentBlock.startTime)} –{' '}
-                        {formatTime24To12(currentBlock.endTime)}
-                        {currentBlock.subtitle ? ` · ${currentBlock.subtitle}` : ''}
-                        {currentBlock.location ? ` · ${currentBlock.location}` : ''}
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="mt-2 text-sm text-[var(--df-text-muted)]">
-                      No active scheduled block right now.
-                    </p>
+                  />
+                  <span className="df-eyebrow">{currentBlock ? 'Live now' : 'Current activity'}</span>
+                  {currentBlock && (
+                    <Badge tone="accent" className="font-mono-tabular">
+                      {formatDurationMinutes(remainingMinutes)} left
+                    </Badge>
                   )}
                 </div>
 
-                {currentBlock && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() =>
-                      openFocus({
-                        taskTitle: currentBlock.subjectCode
-                          ? `${currentBlock.subjectCode} ${currentBlock.title}`
-                          : currentBlock.title,
-                        objective: currentBlock.subtitle,
-                      })
-                    }
-                    className="shrink-0"
-                  >
-                    <Timer className="h-3.5 w-3.5" />
-                    Focus Now
-                  </Button>
+                {currentBlock ? (
+                  <div className="mt-3">
+                    <p className="text-2xl font-semibold leading-tight tracking-[-0.03em] text-[var(--df-text)] sm:text-[28px]">
+                      {currentBlock.subjectCode ? (
+                        <span className="mr-2 align-middle font-mono-tabular text-sm text-[var(--df-accent-secondary)]">
+                          {currentBlock.subjectCode}
+                        </span>
+                      ) : null}
+                      {currentBlock.title}
+                    </p>
+                    <p className="mt-1.5 font-mono-tabular text-xs text-[var(--df-text-muted)]">
+                      {formatTime24To12(currentBlock.startTime)} –{' '}
+                      {formatTime24To12(currentBlock.endTime)}
+                      {currentBlock.subtitle ? ` · ${currentBlock.subtitle}` : ''}
+                      {currentBlock.location ? ` · ${currentBlock.location}` : ''}
+                    </p>
+                    <div className="mt-4 max-w-xl">
+                      <ProgressBar value={currentProgressPct} className="h-2" label="Current block progress" />
+                      <div className="mt-1.5 flex justify-between font-mono-tabular text-[10.5px] text-[var(--df-text-faint)]">
+                        <span>{formatTime24To12(currentBlock.startTime)}</span>
+                        <span>{Math.round(currentProgressPct)}% through</span>
+                        <span>{formatTime24To12(currentBlock.endTime)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-3 text-lg font-medium tracking-tight text-[var(--df-text-muted)]">
+                    No active scheduled block right now.
+                  </p>
                 )}
               </div>
 
-              {nextBlock && (
-                <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-[var(--df-border)] bg-[var(--df-bg)] px-3 py-2 text-xs">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="font-medium text-[#8178F5] shrink-0">UP NEXT</span>
-                    <span className="font-mono-tabular text-[var(--df-text-muted)] shrink-0">
-                      {formatTime24To12(nextBlock.startTime)}
-                    </span>
-                    <span className="truncate text-[var(--df-text)]">
-                      {nextBlock.subjectCode ? `${nextBlock.subjectCode} ` : ''}
-                      {nextBlock.title}
-                    </span>
-                  </div>
-                  <Link
-                    to="/schedule"
-                    className="shrink-0 text-[var(--df-text-muted)] hover:text-[var(--df-text)]"
-                    aria-label="Open schedule"
-                  >
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </div>
+              {currentBlock && (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={() =>
+                    openFocus({
+                      taskTitle: currentBlock.subjectCode
+                        ? `${currentBlock.subjectCode} ${currentBlock.title}`
+                        : currentBlock.title,
+                      objective: currentBlock.subtitle,
+                    })
+                  }
+                  className="shrink-0 rounded-full px-6"
+                >
+                  <Timer className="h-4 w-4" />
+                  Focus Now
+                </Button>
               )}
+            </div>
+
+            {nextBlock && (
+              <div className="mt-5 flex items-center justify-between gap-3 rounded-2xl df-well px-4 py-3 text-xs">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="shrink-0 rounded-full bg-[linear-gradient(135deg,#7B72F6,#5145C8)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white shadow-[0_4px_14px_-4px_rgba(109,100,240,0.8)]">
+                    Up next
+                  </span>
+                  <span className="font-mono-tabular text-[var(--df-text-muted)] shrink-0">
+                    {formatTime24To12(nextBlock.startTime)}
+                  </span>
+                  <span className="truncate text-sm font-medium text-[var(--df-text)]">
+                    {nextBlock.subjectCode ? `${nextBlock.subjectCode} ` : ''}
+                    {nextBlock.title}
+                  </span>
+                </div>
+                <Link
+                  to="/schedule"
+                  className="group flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[var(--df-border)] text-[var(--df-text-muted)] transition-all hover:border-[#8F87FA]/50 hover:text-[var(--df-text)]"
+                  aria-label="Open schedule"
+                >
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </Reveal>
+
+      {/* ============ DAILY OVERVIEW STATS ============ */}
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3" aria-label="Daily overview">
+        <Reveal delay={0.12}>
+          <Card interactive className="h-full">
+            <CardContent className="flex items-center gap-4 pt-5">
+              <ProgressRing
+                value={todayTasks.length > 0 ? (completedTodayTasks / todayTasks.length) * 100 : 0}
+                size={76}
+                label="Tasks completed"
+              >
+                <CheckCircle2 className="h-5 w-5 text-[var(--df-accent-secondary)]" />
+              </ProgressRing>
+              <div className="min-w-0">
+                <p className="df-eyebrow">Tasks Completed</p>
+                <div className="mt-1 flex items-baseline gap-1.5">
+                  <AnimatedNumber
+                    value={completedTodayTasks}
+                    className="text-[32px] font-semibold leading-none tracking-[-0.04em] text-[var(--df-text)]"
+                  />
+                  <span className="font-mono-tabular text-sm text-[var(--df-text-faint)]">
+                    / {todayTasks.length}
+                  </span>
+                </div>
+                <p className="mt-1.5 text-[11px] text-[var(--df-text-muted)]">on today&apos;s list</p>
+              </div>
             </CardContent>
           </Card>
+        </Reveal>
 
-          {/* Today's Schedule */}
-          <Card>
-            <CardHeader>
-              <div>
-                <CardTitle>Today&apos;s Schedule</CardTitle>
-                <p className="text-xs text-[var(--df-text-muted)]">
-                  College timetable &amp; {istNow.dayName} routine (IST)
+        <Reveal delay={0.18}>
+          <Card interactive className="h-full">
+            <CardContent className="flex items-center gap-4 pt-5">
+              <div className="relative flex h-[76px] w-[76px] shrink-0 items-center justify-center">
+                <div className="absolute inset-0 rounded-full bg-[radial-gradient(closest-side,rgba(34,197,94,0.35),transparent)] blur-md df-breathe" />
+                <div className="relative flex h-14 w-14 items-center justify-center rounded-full border border-[#22C55E]/35 bg-[linear-gradient(145deg,rgba(34,197,94,0.25),rgba(94,231,247,0.06))] text-[var(--df-success)] shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]">
+                  <Timer className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="min-w-0">
+                <p className="df-eyebrow">Focus Time Today</p>
+                <div className="mt-1 flex items-baseline gap-1.5">
+                  <AnimatedNumber
+                    value={focusMinutesToday}
+                    format={(n) => formatDurationMinutes(n)}
+                    className="text-[32px] font-semibold leading-none tracking-[-0.04em] text-[var(--df-text)]"
+                  />
+                  <span className="text-xs text-[var(--df-text-faint)]">logged</span>
+                </div>
+                <p className="mt-1.5 text-[11px] text-[var(--df-text-muted)]">
+                  {focusSessionsTodayCount} focus session(s) recorded
                 </p>
               </div>
-              <Link to="/schedule" className="text-xs font-medium text-[#8178F5] hover:underline">
-                Manage →
-              </Link>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {todaySchedule.length === 0 ? (
-                <EmptyState
-                  icon={CalendarClock}
-                  title="No blocks scheduled"
-                  description="Add a custom event or enable recurring templates in Schedule."
-                />
-              ) : (
-                todaySchedule.map((block) => {
-                  const style = CATEGORY_ACCENT[block.category];
-                  const isCurrent =
-                    currentBlock &&
-                    currentBlock.templateId === block.templateId &&
-                    currentBlock.startTime === block.startTime &&
-                    currentBlock.title === block.title;
+            </CardContent>
+          </Card>
+        </Reveal>
 
-                  return (
-                    <div
-                      key={`${block.templateId ?? block.instanceId}-${block.startTime}`}
-                      className={cn(
-                        'flex items-start gap-3 rounded-lg border border-[var(--df-border)] border-l-2 px-3 py-2.5 transition-colors',
-                        style.border,
-                        isCurrent
-                          ? 'bg-[#635BDB]/10 border-[#635BDB]/40'
-                          : 'bg-[var(--df-bg)]/70 hover:bg-[var(--df-elevated)]/60'
-                      )}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => void handleToggleBlock(block)}
-                        aria-label={`Mark ${block.title} as ${block.completed ? 'incomplete' : 'completed'}`}
-                        className={cn(
-                          'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors cursor-pointer',
-                          block.completed
-                            ? 'border-[#16A34A] bg-[#16A34A] text-white'
-                            : 'border-[var(--df-text-muted)]/50 hover:border-[#8178F5]'
-                        )}
-                      >
-                        {block.completed && <Check className="h-3 w-3" />}
-                      </button>
+        <Reveal delay={0.24}>
+          <Card interactive className="h-full">
+            <CardContent className="flex items-center gap-4 pt-5">
+              <ProgressRing
+                value={scheduleCompletionPct}
+                size={76}
+                colors={['#F0B455', '#F59AC8', '#A78BFA']}
+                label="Daily schedule completion"
+              >
+                <span className="font-mono-tabular text-sm font-semibold text-[var(--df-text)]">
+                  {scheduleCompletionPct}%
+                </span>
+              </ProgressRing>
+              <div className="min-w-0">
+                <p className="df-eyebrow">Schedule Completion</p>
+                <div className="mt-1 flex items-baseline gap-1.5">
+                  <AnimatedNumber
+                    value={completedTodayBlocks}
+                    className="text-[32px] font-semibold leading-none tracking-[-0.04em] text-[var(--df-text)]"
+                  />
+                  <span className="font-mono-tabular text-sm text-[var(--df-text-faint)]">
+                    / {actionableTodayBlocks.length}
+                  </span>
+                </div>
+                <p className="mt-1.5 text-[11px] text-[var(--df-text-muted)]">blocks done today</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Reveal>
+      </section>
 
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-mono-tabular text-[11px] text-[var(--df-text-muted)]">
-                            {formatTime24To12(block.startTime)} – {formatTime24To12(block.endTime)}
-                          </span>
-                          <span
+      {/* ============ MAIN WORKSPACE ============ */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
+        {/* Left Primary Column */}
+        <div className="space-y-6 lg:col-span-7">
+          {/* Today's Schedule — timeline */}
+          <Reveal delay={0.05}>
+            <Card>
+              <CardHeader>
+                <div>
+                  <CardTitle>Today&apos;s Schedule</CardTitle>
+                  <p className="mt-0.5 text-xs text-[var(--df-text-muted)]">
+                    College timetable &amp; {istNow.dayName} routine (IST)
+                  </p>
+                </div>
+                <Link
+                  to="/schedule"
+                  className="group inline-flex items-center gap-1 rounded-full df-well px-3 py-1.5 text-xs font-medium text-[var(--df-accent-secondary)] transition-colors hover:text-[var(--df-text)]"
+                >
+                  Manage
+                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </CardHeader>
+              <CardContent>
+                {todaySchedule.length === 0 ? (
+                  <EmptyState
+                    icon={CalendarClock}
+                    title="No blocks scheduled"
+                    description="Add a custom event or enable recurring templates in Schedule."
+                  />
+                ) : (
+                  <ol className="relative">
+                    {/* Timeline spine */}
+                    <span
+                      aria-hidden="true"
+                      className="absolute left-[7px] top-2 bottom-2 w-px bg-[linear-gradient(180deg,rgba(143,135,250,0.6),var(--df-border)_30%,var(--df-border)_70%,rgba(94,231,247,0.5))]"
+                    />
+                    {todaySchedule.map((block, idx) => {
+                      const style = CATEGORY_ACCENT[block.category];
+                      const isCurrent =
+                        currentBlock &&
+                        currentBlock.templateId === block.templateId &&
+                        currentBlock.startTime === block.startTime &&
+                        currentBlock.title === block.title;
+
+                      return (
+                        <motion.li
+                          key={`${block.templateId ?? block.instanceId}-${block.startTime}`}
+                          initial={reduced ? false : { opacity: 0, x: -8 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.4, delay: reduced ? 0 : Math.min(idx * 0.03, 0.4), ease: [0.22, 1, 0.36, 1] }}
+                          className="relative flex items-start gap-3 py-1"
+                        >
+                          {/* Node / toggle */}
+                          <button
+                            type="button"
+                            onClick={() => void handleToggleBlock(block)}
+                            aria-label={`Mark ${block.title} as ${block.completed ? 'incomplete' : 'completed'}`}
                             className={cn(
-                              'rounded px-1.5 py-0.5 text-[10px] font-medium',
-                              style.badge
+                              'relative z-10 mt-3 flex h-[15px] w-[15px] shrink-0 items-center justify-center rounded-full border transition-all duration-300 cursor-pointer',
+                              block.completed
+                                ? 'border-[var(--df-success)] bg-[var(--df-success)] text-white shadow-[0_0_12px_rgba(34,197,94,0.7)]'
+                                : isCurrent
+                                  ? 'df-dot-live border-[#8F87FA] bg-[var(--df-bg)] text-[#8F87FA] shadow-[0_0_12px_rgba(143,135,250,0.8)]'
+                                  : 'border-[var(--df-border-strong)] bg-[var(--df-bg)] hover:border-[#8F87FA] hover:shadow-[0_0_10px_rgba(143,135,250,0.6)]'
                             )}
                           >
-                            {style.label}
-                          </span>
-                          {block.hasConflict && (
-                            <span className="inline-flex items-center gap-1 rounded bg-[#E05252]/15 px-1.5 py-0.5 text-[10px] text-[#E05252]">
-                              <AlertCircle className="h-3 w-3" /> Overlap
-                            </span>
-                          )}
-                        </div>
+                            {block.completed && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
+                          </button>
 
-                        <p
-                          className={cn(
-                            'mt-1 text-sm font-medium text-[var(--df-text)]',
-                            block.completed && 'line-through text-[var(--df-text-muted)]'
-                          )}
-                        >
-                          {block.subjectCode && (
-                            <span className="mr-1.5 font-mono-tabular text-xs text-[#8178F5]">
-                              {block.subjectCode}
-                            </span>
-                          )}
-                          {block.title}
-                        </p>
-                        {(block.subtitle || block.location) && (
-                          <p className="text-xs text-[var(--df-text-muted)]">
-                            {[block.subtitle, block.location].filter(Boolean).join(' · ')}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Today's Priorities */}
-          <Card>
-            <CardHeader>
-              <div>
-                <CardTitle>Today&apos;s Priorities</CardTitle>
-                <p className="text-xs text-[var(--df-text-muted)]">
-                  Focused action items from your task store
-                </p>
-              </div>
-              <Link to="/tasks" className="text-xs font-medium text-[#8178F5] hover:underline">
-                View all ({tasks.filter((t) => !t.completed).length}) →
-              </Link>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {priorityTasks.length === 0 ? (
-                <EmptyState
-                  icon={CheckCircle2}
-                  title="No pending tasks yet"
-                  description="Add a real task below for college, DSA, projects, or career prep."
-                />
-              ) : (
-                <div className="space-y-2">
-                  {priorityTasks.map((task) => (
-                    <div
-                      key={task.id}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-[var(--df-border)] bg-[var(--df-bg)]/70 px-3 py-2.5"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <button
-                          type="button"
-                          onClick={() => void toggleTaskCompleted(task)}
-                          aria-label={`Complete ${task.title}`}
-                          className="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-[var(--df-text-muted)]/50 hover:border-[#8178F5] cursor-pointer"
-                        />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-[var(--df-text)]">
-                            {task.title}
-                          </p>
-                          <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--df-text-muted)]">
-                            <Badge
-                              tone={
-                                task.priority === 'high'
-                                  ? 'error'
-                                  : task.priority === 'medium'
-                                    ? 'warning'
-                                    : 'neutral'
-                              }
-                            >
-                              {task.priority}
-                            </Badge>
-                            <span>{task.category}</span>
-                            {task.dueDate && (
-                              <span className="font-mono-tabular">
-                                · {formatShortDateLabel(task.dueDate)}
+                          <div
+                            className={cn(
+                              'min-w-0 flex-1 rounded-2xl border border-l-2 px-3.5 py-2.5 transition-all duration-300',
+                              style.border,
+                              isCurrent
+                                ? 'border-[#8F87FA]/45 bg-[linear-gradient(110deg,rgba(109,100,240,0.18),rgba(94,231,247,0.04))] shadow-[0_10px_30px_-14px_rgba(109,100,240,0.8)]'
+                                : 'border-[var(--df-border)] bg-[var(--df-inset)] hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)]'
+                            )}
+                          >
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-mono-tabular text-[11px] text-[var(--df-text-muted)]">
+                                {formatTime24To12(block.startTime)} – {formatTime24To12(block.endTime)}
                               </span>
+                              <span
+                                className={cn(
+                                  'rounded-full px-2 py-0.5 text-[10px] font-medium',
+                                  style.badge
+                                )}
+                              >
+                                {style.label}
+                              </span>
+                              {isCurrent && <Badge tone="success">Now</Badge>}
+                              {block.hasConflict && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[#F06A6A]/15 px-2 py-0.5 text-[10px] text-[var(--df-error)]">
+                                  <AlertCircle className="h-3 w-3" /> Overlap
+                                </span>
+                              )}
+                            </div>
+
+                            <p
+                              className={cn(
+                                'mt-1 text-sm font-medium text-[var(--df-text)]',
+                                block.completed && 'line-through decoration-[var(--df-text-faint)] text-[var(--df-text-muted)]'
+                              )}
+                            >
+                              {block.subjectCode && (
+                                <span className="mr-1.5 font-mono-tabular text-xs text-[var(--df-accent-secondary)]">
+                                  {block.subjectCode}
+                                </span>
+                              )}
+                              {block.title}
+                            </p>
+                            {(block.subtitle || block.location) && (
+                              <p className="mt-0.5 text-xs text-[var(--df-text-muted)]">
+                                {[block.subtitle, block.location].filter(Boolean).join(' · ')}
+                              </p>
                             )}
                           </div>
-                        </div>
-                      </div>
+                        </motion.li>
+                      );
+                    })}
+                  </ol>
+                )}
+              </CardContent>
+            </Card>
+          </Reveal>
 
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          openFocus({
-                            taskId: task.id,
-                            taskTitle: task.title,
-                            objective: task.category,
-                          })
-                        }
-                        aria-label={`Focus on ${task.title}`}
-                        className="shrink-0"
+          {/* Today's Priorities */}
+          <Reveal delay={0.05}>
+            <Card>
+              <CardHeader>
+                <div>
+                  <CardTitle>Today&apos;s Priorities</CardTitle>
+                  <p className="mt-0.5 text-xs text-[var(--df-text-muted)]">
+                    Focused action items from your task store
+                  </p>
+                </div>
+                <Link
+                  to="/tasks"
+                  className="group inline-flex items-center gap-1 rounded-full df-well px-3 py-1.5 text-xs font-medium text-[var(--df-accent-secondary)] transition-colors hover:text-[var(--df-text)]"
+                >
+                  View all ({pendingTaskCount})
+                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {priorityTasks.length === 0 ? (
+                  <EmptyState
+                    icon={CheckCircle2}
+                    title="No pending tasks yet"
+                    description="Add a real task below for college, DSA, projects, or career prep."
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    {priorityTasks.map((task, idx) => (
+                      <motion.div
+                        key={task.id}
+                        initial={reduced ? false : { opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.35, delay: reduced ? 0 : idx * 0.04 }}
+                        className="group flex items-center justify-between gap-3 rounded-2xl df-well px-3.5 py-3 transition-all duration-300 hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)]"
                       >
-                        <Timer className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span
+                            aria-hidden="true"
+                            className={cn(
+                              'h-8 w-1 shrink-0 rounded-full',
+                              task.priority === 'high'
+                                ? 'bg-[linear-gradient(180deg,#F06A6A,#F59AC8)] shadow-[0_0_10px_rgba(240,106,106,0.6)]'
+                                : task.priority === 'medium'
+                                  ? 'bg-[linear-gradient(180deg,#F0B455,#F59AC8)]'
+                                  : 'bg-[var(--df-border-strong)]'
+                            )}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => void toggleTaskCompleted(task)}
+                            aria-label={`Complete ${task.title}`}
+                            className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-md border border-[var(--df-border-strong)] transition-all hover:border-[#8F87FA] hover:shadow-[0_0_10px_rgba(143,135,250,0.6)] cursor-pointer"
+                          />
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-[var(--df-text)]">
+                              {task.title}
+                            </p>
+                            <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--df-text-muted)]">
+                              <Badge
+                                tone={
+                                  task.priority === 'high'
+                                    ? 'error'
+                                    : task.priority === 'medium'
+                                      ? 'warning'
+                                      : 'neutral'
+                                }
+                              >
+                                {task.priority}
+                              </Badge>
+                              <span>{task.category}</span>
+                              {task.dueDate && (
+                                <span className="font-mono-tabular">
+                                  · {formatShortDateLabel(task.dueDate)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
 
-              <form onSubmit={handleQuickAdd} className="flex flex-col gap-2 pt-2 sm:flex-row">
-                <Input
-                  value={quickTitle}
-                  onChange={(e) => setQuickTitle(e.target.value)}
-                  placeholder="Quick add a priority task for today..."
-                  aria-label="Quick add task title"
-                  className="flex-1"
-                />
-                <div className="flex gap-2">
-                  <Select
-                    value={quickCategory}
-                    onChange={(e) => setQuickCategory(e.target.value as TaskCategory)}
-                    aria-label="Quick add task category"
-                    className="w-36"
-                  >
-                    {QUICK_CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() =>
+                            openFocus({
+                              taskId: task.id,
+                              taskTitle: task.title,
+                              objective: task.category,
+                            })
+                          }
+                          aria-label={`Focus on ${task.title}`}
+                          className="shrink-0 rounded-full opacity-70 transition-opacity group-hover:opacity-100"
+                        >
+                          <Timer className="h-4 w-4" />
+                        </Button>
+                      </motion.div>
                     ))}
-                  </Select>
-                  <Select
-                    value={quickPriority}
-                    onChange={(e) => setQuickPriority(e.target.value as TaskPriority)}
-                    aria-label="Quick add task priority"
-                    className="w-24"
-                  >
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                    <option value="low">Low</option>
-                  </Select>
-                  <Button type="submit" variant="primary" size="md">
-                    Add
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+                  </div>
+                )}
+
+                <form
+                  onSubmit={handleQuickAdd}
+                  className="flex flex-col gap-2 rounded-2xl border border-dashed border-[var(--df-border-strong)] bg-[var(--df-inset)] p-2 sm:flex-row"
+                >
+                  <Input
+                    value={quickTitle}
+                    onChange={(e) => setQuickTitle(e.target.value)}
+                    placeholder="Quick add a priority task for today..."
+                    aria-label="Quick add task title"
+                    className="flex-1 border-transparent bg-transparent shadow-none"
+                  />
+                  <div className="flex gap-2">
+                    <Select
+                      value={quickCategory}
+                      onChange={(e) => setQuickCategory(e.target.value as TaskCategory)}
+                      aria-label="Quick add task category"
+                      className="w-36"
+                    >
+                      {QUICK_CATEGORIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </Select>
+                    <Select
+                      value={quickPriority}
+                      onChange={(e) => setQuickPriority(e.target.value as TaskPriority)}
+                      aria-label="Quick add task priority"
+                      className="w-24"
+                    >
+                      <option value="high">High</option>
+                      <option value="medium">Medium</option>
+                      <option value="low">Low</option>
+                    </Select>
+                    <Button type="submit" variant="primary" size="md">
+                      <Plus className="h-4 w-4" />
+                      Add
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </Reveal>
         </div>
 
         {/* Right Contextual Column */}
         <div className="space-y-6 lg:col-span-5">
           {/* 4 Long-Term Goals */}
-          <Card>
-            <CardHeader>
-              <div>
-                <CardTitle>Long-Term Goals</CardTitle>
-                <p className="text-xs text-[var(--df-text-muted)]">
-                  {PERSONAL_PLAN_DEFAULTS.planningPeriod}
-                </p>
-              </div>
-              <Flag className="h-4 w-4 text-[#8178F5]" />
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="rounded-lg border border-[var(--df-border)] bg-[var(--df-bg)]/60 p-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-[var(--df-text)]">
-                    1. DSA and placements — 2028
-                  </span>
-                  <span className="font-mono-tabular text-[#8178F5]">
-                    {solvedDsaCount} solved
-                  </span>
+          <Reveal delay={0.1}>
+            <Card>
+              <CardHeader>
+                <div>
+                  <CardTitle>Long-Term Goals</CardTitle>
+                  <p className="mt-0.5 text-xs text-[var(--df-text-muted)]">
+                    {PERSONAL_PLAN_DEFAULTS.planningPeriod}
+                  </p>
                 </div>
-                <p className="mt-1 text-[11px] text-[var(--df-text-muted)]">
-                  Java DSA · Placement rotation {placementPct}% started
-                </p>
-                <ProgressBar className="mt-2" value={placementPct} />
-              </div>
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#8F87FA]/30 bg-[#6D64F0]/12 text-[var(--df-accent-secondary)]">
+                  <Flag className="h-4 w-4" />
+                </span>
+              </CardHeader>
+              <CardContent className="space-y-2.5">
+                {[
+                  {
+                    n: '01',
+                    title: 'DSA and placements — 2028',
+                    stat: `${solvedDsaCount} solved`,
+                    sub: `Java DSA · Placement rotation ${placementPct}% started`,
+                    pct: placementPct as number | null,
+                  },
+                  {
+                    n: '02',
+                    title: 'International internship — Summer 2027',
+                    stat: `${internships.length} tracked`,
+                    sub: `${internships.filter((i) => i.status === 'Applied').length} applied · IAESTE, AScI, DAAD, Mitacs`,
+                    pct: null as number | null,
+                  },
+                  {
+                    n: '03',
+                    title: "US Master's — Fall 2028",
+                    stat: `${mastersCompletedCount}/${mastersMilestones.length} phases`,
+                    sub: `${universities.length} universities shortlisted · MS CS (AI/ML & Systems)`,
+                    pct: mastersPct as number | null,
+                  },
+                  {
+                    n: '04',
+                    title: 'Software engineering curriculum',
+                    stat: `${curriculumPct}%`,
+                    sub: `${completedConcepts}/${totalConcepts} concepts across 16 stages`,
+                    pct: curriculumPct as number | null,
+                  },
+                ].map((goal) => (
+                  <div
+                    key={goal.n}
+                    className="group relative overflow-hidden rounded-2xl df-well p-3.5 transition-all duration-300 hover:border-[var(--df-border-strong)]"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute -bottom-4 right-2 font-mono-tabular text-[56px] font-bold leading-none text-[var(--df-text)] opacity-[0.04] transition-opacity group-hover:opacity-[0.08]"
+                    >
+                      {goal.n}
+                    </span>
+                    <div className="relative flex items-center justify-between gap-3 text-xs">
+                      <span className="font-medium text-[var(--df-text)]">{goal.title}</span>
+                      <span className="shrink-0 font-mono-tabular text-[var(--df-accent-secondary)]">
+                        {goal.stat}
+                      </span>
+                    </div>
+                    <p className="relative mt-1 text-[11px] text-[var(--df-text-muted)]">{goal.sub}</p>
+                    {goal.pct !== null && <ProgressBar className="relative mt-2.5" value={goal.pct} />}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </Reveal>
 
-              <div className="rounded-lg border border-[var(--df-border)] bg-[var(--df-bg)]/60 p-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-[var(--df-text)]">
-                    2. International internship — Summer 2027
-                  </span>
-                  <span className="font-mono-tabular text-[#8178F5]">
-                    {internships.length} tracked
-                  </span>
-                </div>
-                <p className="mt-1 text-[11px] text-[var(--df-text-muted)]">
-                  {internships.filter((i) => i.status === 'Applied').length} applied · IAESTE, AScI, DAAD, Mitacs
-                </p>
-              </div>
-
-              <div className="rounded-lg border border-[var(--df-border)] bg-[var(--df-bg)]/60 p-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-[var(--df-text)]">
-                    3. US Master&apos;s — Fall 2028
-                  </span>
-                  <span className="font-mono-tabular text-[#8178F5]">
-                    {mastersCompletedCount}/{mastersMilestones.length} phases
-                  </span>
-                </div>
-                <p className="mt-1 text-[11px] text-[var(--df-text-muted)]">
-                  {universities.length} universities shortlisted · MS CS (AI/ML &amp; Systems)
-                </p>
-                <ProgressBar className="mt-2" value={mastersPct} />
-              </div>
-
-              <div className="rounded-lg border border-[var(--df-border)] bg-[var(--df-bg)]/60 p-3">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-medium text-[var(--df-text)]">
-                    4. Software engineering curriculum
-                  </span>
-                  <span className="font-mono-tabular text-[#8178F5]">
-                    {curriculumPct}%
-                  </span>
-                </div>
-                <p className="mt-1 text-[11px] text-[var(--df-text-muted)]">
-                  {completedConcepts}/{totalConcepts} concepts across 16 stages
-                </p>
-                <ProgressBar className="mt-2" value={curriculumPct} />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Learning Progress */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Learning Progress</CardTitle>
-              <Link to="/learning" className="text-xs font-medium text-[#8178F5] hover:underline">
-                Open Hub →
-              </Link>
-            </CardHeader>
-            <CardContent className="space-y-3 text-xs">
-              <div>
-                <div className="mb-1 flex justify-between">
-                  <span className="text-[var(--df-text-muted)]">DSA (Java)</span>
-                  <span className="font-mono-tabular text-[var(--df-text)]">
-                    {solvedDsaCount} solved / {dsaProblems.length} logged
-                  </span>
-                </div>
-                <ProgressBar
-                  value={dsaProblems.length > 0 ? (solvedDsaCount / dsaProblems.length) * 100 : 0}
-                />
-              </div>
-              <div>
-                <div className="mb-1 flex justify-between">
-                  <span className="text-[var(--df-text-muted)]">Software Engineering (16 Stages)</span>
-                  <span className="font-mono-tabular text-[var(--df-text)]">{curriculumPct}%</span>
-                </div>
-                <ProgressBar value={curriculumPct} />
-              </div>
-              <div>
-                <div className="mb-1 flex justify-between">
-                  <span className="text-[var(--df-text-muted)]">Placement Preparation</span>
-                  <span className="font-mono-tabular text-[var(--df-text)]">{placementPct}%</span>
-                </div>
-                <ProgressBar value={placementPct} />
-              </div>
-              <div>
-                <div className="mb-1 flex justify-between">
-                  <span className="text-[var(--df-text-muted)]">Projects ({projects.length})</span>
-                  <span className="font-mono-tabular text-[var(--df-text)]">{activeProjectsPct}%</span>
-                </div>
-                <ProgressBar value={activeProjectsPct} />
-              </div>
-            </CardContent>
-          </Card>
+          {/* Learning Progress — ring grid */}
+          <Reveal delay={0.1}>
+            <Card>
+              <CardHeader>
+                <CardTitle>Learning Progress</CardTitle>
+                <Link
+                  to="/learning"
+                  className="group inline-flex items-center gap-1 rounded-full df-well px-3 py-1.5 text-xs font-medium text-[var(--df-accent-secondary)] transition-colors hover:text-[var(--df-text)]"
+                >
+                  Open Hub
+                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </CardHeader>
+              <CardContent className="grid grid-cols-2 gap-3">
+                {[
+                  {
+                    label: 'DSA (Java)',
+                    pct: dsaProblems.length > 0 ? (solvedDsaCount / dsaProblems.length) * 100 : 0,
+                    detail: `${solvedDsaCount} solved / ${dsaProblems.length} logged`,
+                    colors: ['#8F87FA', '#A78BFA', '#5EE7F7'] as [string, string, string],
+                  },
+                  {
+                    label: 'Software Engineering',
+                    pct: curriculumPct,
+                    detail: '16 stages',
+                    colors: ['#5EE7F7', '#5EEAB0', '#A78BFA'] as [string, string, string],
+                  },
+                  {
+                    label: 'Placement Prep',
+                    pct: placementPct,
+                    detail: 'weekly rotation',
+                    colors: ['#5EEAB0', '#5EE7F7', '#8F87FA'] as [string, string, string],
+                  },
+                  {
+                    label: `Projects (${projects.length})`,
+                    pct: activeProjectsPct,
+                    detail: 'tasks & milestones',
+                    colors: ['#F59AC8', '#B79CFF', '#8F87FA'] as [string, string, string],
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex flex-col items-center rounded-2xl df-well px-2 py-4 text-center transition-all duration-300 hover:border-[var(--df-border-strong)]"
+                  >
+                    <ProgressRing value={item.pct} size={68} stroke={5} colors={item.colors} label={item.label}>
+                      <span className="font-mono-tabular text-[13px] font-semibold text-[var(--df-text)]">
+                        {Math.round(item.pct)}%
+                      </span>
+                    </ProgressRing>
+                    <p className="mt-2.5 text-xs font-medium text-[var(--df-text)]">{item.label}</p>
+                    <p className="mt-0.5 text-[10.5px] text-[var(--df-text-faint)]">{item.detail}</p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </Reveal>
 
           {/* Upcoming Deadlines */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Upcoming Deadlines</CardTitle>
-              <Clock className="h-4 w-4 text-[#E5A03C]" />
-            </CardHeader>
-            <CardContent>
-              {upcomingDeadlines.length === 0 ? (
-                <p className="text-xs text-[var(--df-text-muted)]">
-                  No dated deadlines yet. Add due dates on tasks, project targets, internships, or university applications.
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {upcomingDeadlines.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-[var(--df-border)] bg-[var(--df-bg)]/60 px-3 py-2 text-xs"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate font-medium text-[var(--df-text)]">{item.title}</p>
-                        <p className="text-[11px] text-[var(--df-text-muted)]">
-                          {item.source} · {formatShortDateLabel(item.dateKey)}
-                        </p>
+          <Reveal delay={0.1}>
+            <Card>
+              <CardHeader>
+                <CardTitle>Upcoming Deadlines</CardTitle>
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#F0B455]/30 bg-[#F0B455]/10 text-[var(--df-warning)]">
+                  <Clock className="h-4 w-4" />
+                </span>
+              </CardHeader>
+              <CardContent>
+                {upcomingDeadlines.length === 0 ? (
+                  <p className="rounded-2xl df-well px-4 py-5 text-center text-xs leading-relaxed text-[var(--df-text-muted)]">
+                    No dated deadlines yet. Add due dates on tasks, project targets, internships, or university applications.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {upcomingDeadlines.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center gap-3 rounded-2xl df-well px-3 py-2.5 text-xs transition-all hover:border-[var(--df-border-strong)]"
+                      >
+                        <div
+                          className={cn(
+                            'flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl border font-mono-tabular leading-none',
+                            item.daysLeft <= 3
+                              ? 'border-[#F0B455]/40 bg-[#F0B455]/12 text-[var(--df-warning)] shadow-[0_0_16px_-6px_rgba(240,180,85,0.8)]'
+                              : 'border-[var(--df-border-strong)] bg-[var(--df-inset)] text-[var(--df-text)]'
+                          )}
+                        >
+                          <span className="text-[15px] font-semibold">
+                            {item.daysLeft === 0 ? '•' : Math.abs(item.daysLeft)}
+                          </span>
+                          <span className="mt-0.5 text-[8.5px] uppercase tracking-wider opacity-75">
+                            {item.daysLeft === 0 ? 'today' : item.daysLeft < 0 ? 'ago' : 'days'}
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium text-[var(--df-text)]">{item.title}</p>
+                          <p className="mt-0.5 text-[11px] text-[var(--df-text-muted)]">
+                            {item.source} · {formatShortDateLabel(item.dateKey)}
+                          </p>
+                        </div>
+                        <Badge tone={item.daysLeft <= 3 ? 'warning' : 'neutral'} className="font-mono-tabular shrink-0">
+                          {item.daysLeft === 0
+                            ? 'Today'
+                            : item.daysLeft < 0
+                              ? `${Math.abs(item.daysLeft)}d ago`
+                              : `in ${item.daysLeft}d`}
+                        </Badge>
                       </div>
-                      <Badge tone={item.daysLeft <= 3 ? 'warning' : 'neutral'} className="font-mono-tabular shrink-0">
-                        {item.daysLeft === 0
-                          ? 'Today'
-                          : item.daysLeft < 0
-                            ? `${Math.abs(item.daysLeft)}d ago`
-                            : `in ${item.daysLeft}d`}
-                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </Reveal>
+
+          {/* Weekly Overview */}
+          <Reveal delay={0.1}>
+            <Card>
+              <CardHeader>
+                <CardTitle>Weekly Overview</CardTitle>
+                <Link
+                  to="/analytics"
+                  className="group inline-flex items-center gap-1 rounded-full df-well px-3 py-1.5 text-xs font-medium text-[var(--df-accent-secondary)] transition-colors hover:text-[var(--df-text)]"
+                >
+                  Analytics
+                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-7 gap-2">
+                  {weeklySummary.map((day, idx) => (
+                    <div key={day.dateKey} className="flex flex-col items-center gap-2">
+                      <div
+                        className={cn(
+                          'relative flex h-28 w-full items-end overflow-hidden rounded-xl border p-1',
+                          day.isToday
+                            ? 'border-[#8F87FA]/60 bg-[#6D64F0]/10 shadow-[0_0_20px_-8px_rgba(109,100,240,0.9)]'
+                            : 'border-[var(--df-border)] bg-[var(--df-inset)]'
+                        )}
+                        title={`${day.label}: ${day.done}/${day.total} blocks`}
+                      >
+                        <motion.div
+                          initial={reduced ? false : { height: 0 }}
+                          whileInView={{ height: `${Math.max(day.pct > 0 ? 8 : 0, day.pct)}%` }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.9, delay: reduced ? 0 : idx * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                          className={cn(
+                            'w-full rounded-lg',
+                            day.isToday
+                              ? 'bg-[linear-gradient(180deg,#5EE7F7,#8F87FA_45%,#635BDB)] shadow-[0_0_16px_rgba(143,135,250,0.8)]'
+                              : 'bg-[linear-gradient(180deg,rgba(167,139,250,0.9),rgba(99,91,219,0.6))]'
+                          )}
+                        />
+                      </div>
+                      <span
+                        className={cn(
+                          'text-[11px] font-medium',
+                          day.isToday ? 'text-[var(--df-accent-secondary)]' : 'text-[var(--df-text-muted)]'
+                        )}
+                      >
+                        {day.label}
+                      </span>
+                      <span className="-mt-1.5 font-mono-tabular text-[9.5px] text-[var(--df-text-faint)]">
+                        {day.pct}%
+                      </span>
                     </div>
                   ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Weekly Overview */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Weekly Overview</CardTitle>
-              <Link to="/analytics" className="text-xs font-medium text-[#8178F5] hover:underline">
-                Analytics →
-              </Link>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-7 gap-2">
-                {weeklySummary.map((day) => (
-                  <div key={day.dateKey} className="flex flex-col items-center gap-1.5">
-                    <div
-                      className={cn(
-                        'flex h-12 w-full items-end overflow-hidden rounded-md border p-0.5',
-                        day.isToday
-                          ? 'border-[#635BDB] bg-[#635BDB]/10'
-                          : 'border-[var(--df-border)] bg-[var(--df-bg)]'
-                      )}
-                      title={`${day.label}: ${day.done}/${day.total} blocks`}
-                    >
-                      <div
-                        className={cn(
-                          'w-full rounded-xs transition-all',
-                          day.isToday ? 'bg-[#635BDB]' : 'bg-[#8178F5]/70'
-                        )}
-                        style={{ height: `${Math.max(day.pct > 0 ? 12 : 0, day.pct)}%` }}
-                      />
-                    </div>
-                    <span
-                      className={cn(
-                        'text-[11px] font-medium',
-                        day.isToday ? 'text-[#8178F5]' : 'text-[var(--df-text-muted)]'
-                      )}
-                    >
-                      {day.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Reveal>
         </div>
       </div>
     </div>
