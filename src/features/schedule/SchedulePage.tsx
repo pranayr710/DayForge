@@ -45,6 +45,7 @@ import {
   getMonthCalendarDateKeys,
   getShortDayLabel,
   getWeekDateKeys,
+  shiftMonthDateKey,
 } from '@/lib/dateUtils';
 import { findCurrentAndNextBlocks, resolveDaySchedule } from '@/lib/scheduleEngine';
 import { customEventFormSchema, type CustomEventFormValues } from '@/lib/validations';
@@ -232,7 +233,15 @@ export default function SchedulePage() {
     toast('Recurring slot added', { tone: 'success' });
   }
 
-  const stepDelta = viewMode === 'day' ? 1 : viewMode === 'week' ? 7 : 30;
+  const stepDelta = viewMode === 'day' ? 1 : 7;
+  // Month view steps by whole calendar months so no month is ever skipped
+  // (a fixed 30-day jump skips Feb and lands mid-month).
+  const shiftPeriod = (dir: -1 | 1) =>
+    setSelectedDateKey((cur) =>
+      viewMode === 'month'
+        ? shiftMonthDateKey(cur, dir)
+        : addDaysToDateKey(cur, dir * stepDelta)
+    );
 
   return (
     <div className="space-y-5">
@@ -294,7 +303,7 @@ export default function SchedulePage() {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 rounded-full"
-                onClick={() => setSelectedDateKey(addDaysToDateKey(selectedDateKey, -stepDelta))}
+                onClick={() => shiftPeriod(-1)}
                 aria-label="Previous period"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -315,7 +324,7 @@ export default function SchedulePage() {
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 rounded-full"
-                onClick={() => setSelectedDateKey(addDaysToDateKey(selectedDateKey, stepDelta))}
+                onClick={() => shiftPeriod(1)}
                 aria-label="Next period"
               >
                 <ChevronRight className="h-4 w-4" />

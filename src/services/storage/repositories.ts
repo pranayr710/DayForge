@@ -237,10 +237,10 @@ export async function toggleTaskCompleted(task: TaskItem): Promise<void> {
   if (nextCompleted && task.recurrence !== 'none' && task.dueDate) {
     const delta = task.recurrence === 'daily' ? 1 : 7;
     const nextDueDate = addDaysToDateKey(task.dueDate, delta);
+    // `title` is not an indexed field, so query with filter() (a where() on it
+    // throws and previously fell through to always creating a duplicate).
     const existing = await db.tasks
-      .where('title')
-      .equals(task.title)
-      .filter((t) => !t.completed && t.dueDate === nextDueDate)
+      .filter((t) => t.title === task.title && !t.completed && t.dueDate === nextDueDate)
       .count()
       .catch(() => 0);
 
@@ -323,12 +323,17 @@ export async function toggleStageConcept(
   stage: LearningStage,
   conceptId: string
 ): Promise<void> {
-  const updatedConcepts = stage.concepts.map((c) =>
-    c.id === conceptId ? { ...c, completed: !c.completed } : c
-  );
-  await db.learningStages.update(stage.id, {
-    concepts: updatedConcepts,
-    updatedAt: new Date().toISOString(),
+  // Re-read inside a transaction so rapid toggles don't overwrite each other
+  // from a stale render snapshot.
+  await db.transaction('rw', db.learningStages, async () => {
+    const current = await db.learningStages.get(stage.id);
+    if (!current) return;
+    await db.learningStages.update(stage.id, {
+      concepts: current.concepts.map((c) =>
+        c.id === conceptId ? { ...c, completed: !c.completed } : c
+      ),
+      updatedAt: new Date().toISOString(),
+    });
   });
 }
 
@@ -506,6 +511,68 @@ export async function deleteProject(id: string): Promise<void> {
   await db.projects.delete(id);
 }
 
+// Item-level project edits re-read inside a transaction so rapid clicks don't
+// clobber each other from a stale render snapshot.
+export async function toggleProjectMilestone(
+  projectId: string,
+  milestoneId: string
+): Promise<void> {
+  await db.transaction('rw', db.projects, async () => {
+    const p = await db.projects.get(projectId);
+    if (!p) return;
+    await db.projects.update(projectId, {
+      milestones: p.milestones.map((m) =>
+        m.id === milestoneId ? { ...m, completed: !m.completed } : m
+      ),
+      updatedAt: new Date().toISOString(),
+    });
+  });
+}
+
+export async function addProjectMilestone(
+  projectId: string,
+  title: string
+): Promise<void> {
+  await db.transaction('rw', db.projects, async () => {
+    const p = await db.projects.get(projectId);
+    if (!p) return;
+    await db.projects.update(projectId, {
+      milestones: [...p.milestones, { id: createId('pm'), title, completed: false }],
+      updatedAt: new Date().toISOString(),
+    });
+  });
+}
+
+export async function toggleProjectTask(
+  projectId: string,
+  taskId: string
+): Promise<void> {
+  await db.transaction('rw', db.projects, async () => {
+    const p = await db.projects.get(projectId);
+    if (!p) return;
+    await db.projects.update(projectId, {
+      tasks: p.tasks.map((t) =>
+        t.id === taskId ? { ...t, completed: !t.completed } : t
+      ),
+      updatedAt: new Date().toISOString(),
+    });
+  });
+}
+
+export async function addProjectTask(
+  projectId: string,
+  title: string
+): Promise<void> {
+  await db.transaction('rw', db.projects, async () => {
+    const p = await db.projects.get(projectId);
+    if (!p) return;
+    await db.projects.update(projectId, {
+      tasks: [...p.tasks, { id: createId('pt'), title, completed: false }],
+      updatedAt: new Date().toISOString(),
+    });
+  });
+}
+
 // --- Internships ---
 export async function upsertInternship(
   input: Omit<InternshipApplication, 'id' | 'userId' | 'createdAt' | 'updatedAt'>,
@@ -568,6 +635,21 @@ export async function toggleCareerChecklistItem(
 ): Promise<void> {
   await db.careerChecklist.update(id, {
     completed: !completed,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+/**
+ * Merges a partial patch into a university record. update() applies against the
+ * current stored row, so changing one checklist field won't revert another
+ * field edited moments earlier (unlike spreading a stale snapshot).
+ */
+export async function patchUniversityTarget(
+  id: string,
+  patch: Partial<Omit<UniversityTarget, 'id' | 'userId' | 'createdAt'>>
+): Promise<void> {
+  await db.universities.update(id, {
+    ...patch,
     updatedAt: new Date().toISOString(),
   });
 }

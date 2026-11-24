@@ -29,6 +29,7 @@ import {
   deleteInternship,
   deleteUniversityTarget,
   logPlacementSession,
+  patchUniversityTarget,
   toggleCareerChecklistItem,
   updateMastersMilestone,
   updatePlacementTopic,
@@ -42,8 +43,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { FieldLabel, Input, Select, Textarea } from '@/components/ui/FormControls';
 import { Modal } from '@/components/ui/Modal';
+import { DebouncedInput } from '@/components/ui/DebouncedField';
 import { Reveal, SegmentedTabs } from '@/components/ui/Primitives';
-import { cn } from '@/lib/utils';
+import { cn, safeExternalUrl } from '@/lib/utils';
 import type {
   ChecklistState,
   InternshipApplication,
@@ -307,7 +309,7 @@ export default function CareerPage() {
       focusArea: sessFocus,
       kind: sessKind,
       companyOrLabel: sessLabel.trim() || undefined,
-      durationMinutes: sessMins,
+      durationMinutes: Number.isFinite(sessMins) && sessMins > 0 ? sessMins : 30,
       notes: sessNotes.trim(),
     });
     setSessLabel('');
@@ -451,12 +453,16 @@ export default function CareerPage() {
                             />
                             <Select
                               value={rec.revisionStatus}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                const next = e.target.value as StageStatus;
                                 void updatePlacementTopic(rec.id, {
-                                  revisionStatus: e.target.value as StageStatus,
-                                  lastStudiedDate: istNow.dateKey,
-                                })
-                              }
+                                  revisionStatus: next,
+                                  // Only stamp a study date when actually studying.
+                                  ...(next !== 'not_started'
+                                    ? { lastStudiedDate: istNow.dateKey }
+                                    : {}),
+                                });
+                              }}
                               aria-label={`${rec.focusArea} revision status`}
                               className="h-8 w-36 rounded-full text-xs"
                             >
@@ -483,13 +489,13 @@ export default function CareerPage() {
                         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
                           <div className="rounded-2xl df-well px-3 py-2">
                             <FieldLabel>Practice Questions</FieldLabel>
-                            <Input
+                            <DebouncedInput
                               type="number"
                               min={0}
-                              value={rec.practiceQuestionsCount}
-                              onChange={(e) =>
+                              value={String(rec.practiceQuestionsCount)}
+                              onCommit={(next) =>
                                 void updatePlacementTopic(rec.id, {
-                                  practiceQuestionsCount: Number(e.target.value) || 0,
+                                  practiceQuestionsCount: Math.max(0, Number(next) || 0),
                                 })
                               }
                               className="h-8 font-mono-tabular text-xs"
@@ -497,13 +503,13 @@ export default function CareerPage() {
                           </div>
                           <div className="rounded-2xl df-well px-3 py-2">
                             <FieldLabel>Interview Questions</FieldLabel>
-                            <Input
+                            <DebouncedInput
                               type="number"
                               min={0}
-                              value={rec.interviewQuestionsCount}
-                              onChange={(e) =>
+                              value={String(rec.interviewQuestionsCount)}
+                              onCommit={(next) =>
                                 void updatePlacementTopic(rec.id, {
-                                  interviewQuestionsCount: Number(e.target.value) || 0,
+                                  interviewQuestionsCount: Math.max(0, Number(next) || 0),
                                 })
                               }
                               className="h-8 font-mono-tabular text-xs"
@@ -511,10 +517,10 @@ export default function CareerPage() {
                           </div>
                           <div className="col-span-2 rounded-2xl df-well px-3 py-2">
                             <FieldLabel>Notes</FieldLabel>
-                            <Input
+                            <DebouncedInput
                               value={rec.notes}
-                              onChange={(e) =>
-                                void updatePlacementTopic(rec.id, { notes: e.target.value })
+                              onCommit={(next) =>
+                                void updatePlacementTopic(rec.id, { notes: next })
                               }
                               placeholder="Key concepts, weak areas, or mock links..."
                               className="h-8 text-xs"
@@ -571,8 +577,10 @@ export default function CareerPage() {
                           <Input
                             type="number"
                             min={5}
-                            value={sessMins}
-                            onChange={(e) => setSessMins(Number(e.target.value) || 30)}
+                            value={Number.isNaN(sessMins) ? '' : sessMins}
+                            onChange={(e) =>
+                              setSessMins(e.target.value === '' ? NaN : Number(e.target.value))
+                            }
                             className="font-mono-tabular"
                           />
                         </div>
@@ -829,9 +837,9 @@ export default function CareerPage() {
                         <div className="df-hairline" />
 
                         <div className="flex items-center justify-end gap-1.5">
-                          {item.officialUrl && (
+                          {safeExternalUrl(item.officialUrl) && (
                             <a
-                              href={item.officialUrl}
+                              href={safeExternalUrl(item.officialUrl)}
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex h-8 items-center gap-1 rounded-full border border-[var(--df-border)] px-3 text-xs text-[var(--df-text)] transition-colors hover:border-[#8F87FA]/60 hover:text-[var(--df-accent-secondary)]"
@@ -944,20 +952,20 @@ export default function CareerPage() {
                         </span>
                         <div className="grid grid-cols-1 gap-2 rounded-2xl df-well p-3 transition-all hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)] sm:grid-cols-12 sm:items-center">
                           <div className="sm:col-span-3">
-                            <Input
+                            <DebouncedInput
                               value={m.period}
-                              onChange={(e) =>
-                                void updateMastersMilestone(m.id, { period: e.target.value })
+                              onCommit={(next) =>
+                                void updateMastersMilestone(m.id, { period: next })
                               }
                               aria-label="Milestone period"
                               className="h-8 font-mono-tabular text-xs text-[var(--df-accent-secondary)]"
                             />
                           </div>
                           <div className="sm:col-span-5">
-                            <Input
+                            <DebouncedInput
                               value={m.goal}
-                              onChange={(e) =>
-                                void updateMastersMilestone(m.id, { goal: e.target.value })
+                              onCommit={(next) =>
+                                void updateMastersMilestone(m.id, { goal: next })
                               }
                               aria-label="Milestone goal"
                               className="h-8 text-xs font-medium"
@@ -980,10 +988,10 @@ export default function CareerPage() {
                             </Select>
                           </div>
                           <div className="sm:col-span-2">
-                            <Input
+                            <DebouncedInput
                               value={m.notes}
-                              onChange={(e) =>
-                                void updateMastersMilestone(m.id, { notes: e.target.value })
+                              onCommit={(next) =>
+                                void updateMastersMilestone(m.id, { notes: next })
                               }
                               placeholder="Notes..."
                               aria-label="Milestone notes"
@@ -1121,13 +1129,9 @@ export default function CareerPage() {
                               <Select
                                 value={u[field]}
                                 onChange={(e) =>
-                                  void upsertUniversityTarget(
-                                    {
-                                      ...u,
-                                      [field]: e.target.value as ChecklistState,
-                                    },
-                                    u.id
-                                  )
+                                  void patchUniversityTarget(u.id, {
+                                    [field]: e.target.value as ChecklistState,
+                                  })
                                 }
                                 className="h-8 rounded-full text-[11px] capitalize"
                               >
