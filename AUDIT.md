@@ -49,3 +49,13 @@ Single authoritative audit trail for all architecture, design, implementation, a
 - **ESLint (`npm run lint`):** Passed (`0` errors, `3` `react-refresh/only-export-components` warnings in providers)
 - **Production Build (`npm run build`):** Passed (`vite build` succeeded in `8.70s` + PWA SW precache generated)
 - **Live Browser / Chrome DevTools Audit:** **Blocked (Not Run)** — `DevToolsActivePort` missing in Chrome User Data directory. Enable Chrome remote debugging (`chrome://inspect/#remote-debugging`) to run live console, responsive, persistence, and SW checks.
+
+---
+
+## Branch `feat/youtube-dev-redirects` — Direct YouTube & Dev Redirects + Master Timetable Sync
+- **Status:** Implemented & verified (`typecheck`, `lint`, `build`)
+- **Changes:**
+  - `src/config/awareness.ts`: Added exact `channelUrl` to all 7 `YOUTUBE_ROTATION` channels (`@mreflow`, `@Fireship`, `@TechLinked`, `@AIExplained-official`, `@ByteByteGo`, `@hnasr`, `@TwoMinutePapers`) and `getQuickLinksForScheduleBlock()` for `daily.dev`, `Hacker News`, `GitHub Trending`, `roadmap.sh`, YouTube rotation, and Java DSA links (`@takeUforward`, `LeetCode`, `NeetCode`).
+  - `src/config/curriculum.ts`: Added `RECOMMENDED_CHANNEL_URLS` and `getChannelUrl()` covering all 16 stages (`CrashCourse`, `Neso Academy`, `Gate Smashers`, `Fireship`, `MIT Missing Semester`, `Web Dev Simplified`, `Kevin Powell`, `Hussein Nasser`, `Java Guides`, `IBM Technology`, `ByteByteGo`, `Gaurav Sen`, `TechWorld with Nana`, `Abhishek Veeramalla`, `NetworkChuck`, `3Blue1Brown`, `StatQuest`, `Andrej Karpathy`, `Hugging Face Learn`).
+  - `src/features/dashboard/DashboardPage.tsx`, `src/features/schedule/SchedulePage.tsx`, `src/features/learning/LearningHubPage.tsx`: Surfaced clickable YouTube & dev redirect pills directly on timeline blocks, Dashboard right-column `YouTube & Dev Redirects` card, 16-stage curriculum cards & detail modal, and Tech Awareness rotation cards.
+  - `src/config/career.ts`, `src/types/index.ts`, `src/services/storage/db.ts` (`v2`), `src/services/storage/seed.ts`, `src/services/storage/repositories.ts`, `src/lib/validations.ts`, `src/features/career/CareerPage.tsx`: Added persisted 10-item Summer 2027 Internship Application Checklist.

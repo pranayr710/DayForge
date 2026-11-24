@@ -25,14 +25,27 @@ export interface InternshipSourcePortal {
 }
 
 export const INTERNSHIP_OPPORTUNITY_SOURCES: InternshipSourcePortal[] = [
-  { name: 'IAESTE', url: 'https://iaeste.org/', region: 'Global' },
-  { name: 'Aalto AScI', url: 'https://www.aalto.fi/en/aalto-science-institute-asci', region: 'Finland' },
+  { name: 'IAESTE', url: 'https://www.iaeste.org/', region: 'Global' },
+  { name: 'Aalto AScI', url: 'https://www.aalto.fi/en/aalto-university-science-institute-asci', region: 'Finland' },
   { name: 'DAAD', url: 'https://www.daad.de/en/', region: 'Germany' },
   { name: 'EURAXESS', url: 'https://euraxess.ec.europa.eu/', region: 'Europe' },
   { name: 'Mitacs Globalink', url: 'https://www.mitacs.ca/our-programs/globalink-research-internship-students/', region: 'Canada' },
-  { name: 'Google Careers', url: 'https://www.google.com/about/careers/applications/', region: 'Global' },
+  { name: 'Google Careers', url: 'https://www.google.com/about/careers/', region: 'Global' },
   { name: 'LinkedIn Jobs', url: 'https://www.linkedin.com/jobs/', region: 'Global' },
   { name: 'AICTE Internship Portal', url: 'https://internship.aicte-india.org/', region: 'India' },
+];
+
+export const INTERNSHIP_APPLICATION_CHECKLIST: Array<{ id: string; label: string }> = [
+  { id: 'chk-resume', label: 'One-page resume' },
+  { id: 'chk-transcript', label: 'Updated transcript and CGPA details' },
+  { id: 'chk-enrollment', label: 'Enrollment certificate' },
+  { id: 'chk-passport', label: 'Passport and validity check' },
+  { id: 'chk-linkedin', label: 'Updated LinkedIn profile' },
+  { id: 'chk-github', label: 'GitHub profile with strong pinned repositories' },
+  { id: 'chk-research', label: 'Research interest statement' },
+  { id: 'chk-motivation', label: 'Motivation letter' },
+  { id: 'chk-lor', label: 'Professor recommendation' },
+  { id: 'chk-grad', label: 'Expected graduation confirmation' },
 ];
 
 export const MASTERS_TARGET_DIRECTION = {

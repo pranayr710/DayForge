@@ -364,3 +364,11 @@ export interface UniversityTarget {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CareerChecklistItem {
+  id: string;
+  userId: string;
+  label: string;
+  completed: boolean;
+  updatedAt: string;
+}

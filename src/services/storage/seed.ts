@@ -6,7 +6,9 @@ import { createDefaultLearningStages } from '@/config/curriculum';
 import {
   createDefaultMastersMilestones,
   createDefaultPlacementTopics,
+  INTERNSHIP_APPLICATION_CHECKLIST,
 } from '@/config/career';
+import { DEFAULT_USER_ID } from '@/config/personalPlan';
 
 let initPromise: Promise<void> | null = null;
 
@@ -29,6 +31,7 @@ export async function ensureDatabaseSeeded(): Promise<void> {
         db.learningStages,
         db.placementTopics,
         db.mastersMilestones,
+        db.careerChecklist,
       ],
       async () => {
         const profileCount = await db.userProfile.count();
@@ -58,6 +61,19 @@ export async function ensureDatabaseSeeded(): Promise<void> {
         if (milestoneCount === 0) {
           await db.mastersMilestones.bulkPut(
             createDefaultMastersMilestones(nowIso)
+          );
+        }
+
+        const checklistCount = await db.careerChecklist.count();
+        if (checklistCount === 0) {
+          await db.careerChecklist.bulkPut(
+            INTERNSHIP_APPLICATION_CHECKLIST.map((item) => ({
+              id: item.id,
+              userId: DEFAULT_USER_ID,
+              label: item.label,
+              completed: false,
+              updatedAt: nowIso,
+            }))
           );
         }
       }
