@@ -14,11 +14,15 @@ import {
 import { db } from '@/services/storage/db';
 import { useToast } from '@/app/providers/ToastProvider';
 import {
+  addProjectMilestone,
+  addProjectTask,
   deleteProject,
+  toggleProjectMilestone,
+  toggleProjectTask,
   updateProjectTasksAndMilestones,
   upsertProject,
 } from '@/services/storage/repositories';
-import { createId, cn } from '@/lib/utils';
+import { cn, safeExternalUrl } from '@/lib/utils';
 import { formatShortDateLabel } from '@/lib/dateUtils';
 import { ConfirmDialog, EmptyState, PageHeader } from '@/components/shared/SharedComponents';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -319,9 +323,9 @@ export default function ProjectsPage() {
 
                     {proj.techStack.length > 0 && (
                       <div className="flex flex-wrap gap-1.5">
-                        {proj.techStack.map((tech) => (
+                        {proj.techStack.map((tech, techIdx) => (
                           <span
-                            key={tech}
+                            key={`${tech}-${techIdx}`}
                             className="inline-flex items-center gap-1 rounded-full border border-[var(--df-border-strong)] bg-[var(--df-inset)] px-2.5 py-1 font-mono-tabular text-[10.5px] leading-none text-[var(--df-text-muted)] transition-colors hover:border-[#8F87FA]/50 hover:text-[var(--df-text)]"
                           >
                             <span aria-hidden="true" className={cn('h-1 w-1 rounded-full', accent.dot)} />
@@ -370,13 +374,7 @@ export default function ProjectsPage() {
                         <button
                           key={m.id}
                           type="button"
-                          onClick={() =>
-                            void updateProjectTasksAndMilestones(proj.id, {
-                              milestones: proj.milestones.map((item) =>
-                                item.id === m.id ? { ...item, completed: !item.completed } : item
-                              ),
-                            })
-                          }
+                          onClick={() => void toggleProjectMilestone(proj.id, m.id)}
                           className="group flex w-full items-center gap-2.5 rounded-xl df-well px-3 py-2 text-left text-xs text-[var(--df-text)] transition-all duration-300 hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)] cursor-pointer"
                         >
                           <span
@@ -400,12 +398,7 @@ export default function ProjectsPage() {
                           e.preventDefault();
                           const val = (newMilestoneInput[proj.id] ?? '').trim();
                           if (!val) return;
-                          void updateProjectTasksAndMilestones(proj.id, {
-                            milestones: [
-                              ...proj.milestones,
-                              { id: createId('pm'), title: val, completed: false },
-                            ],
-                          });
+                          void addProjectMilestone(proj.id, val);
                           setNewMilestoneInput((prev) => ({ ...prev, [proj.id]: '' }));
                         }}
                       >
@@ -443,13 +436,7 @@ export default function ProjectsPage() {
                         <button
                           key={t.id}
                           type="button"
-                          onClick={() =>
-                            void updateProjectTasksAndMilestones(proj.id, {
-                              tasks: proj.tasks.map((item) =>
-                                item.id === t.id ? { ...item, completed: !item.completed } : item
-                              ),
-                            })
-                          }
+                          onClick={() => void toggleProjectTask(proj.id, t.id)}
                           className="group flex w-full items-center gap-2.5 rounded-xl df-well px-3 py-2 text-left text-xs text-[var(--df-text)] transition-all duration-300 hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)] cursor-pointer"
                         >
                           <span
@@ -473,12 +460,7 @@ export default function ProjectsPage() {
                           e.preventDefault();
                           const val = (newTaskInput[proj.id] ?? '').trim();
                           if (!val) return;
-                          void updateProjectTasksAndMilestones(proj.id, {
-                            tasks: [
-                              ...proj.tasks,
-                              { id: createId('pt'), title: val, completed: false },
-                            ],
-                          });
+                          void addProjectTask(proj.id, val);
                           setNewTaskInput((prev) => ({ ...prev, [proj.id]: '' }));
                         }}
                       >
@@ -497,11 +479,11 @@ export default function ProjectsPage() {
                       </form>
                     </div>
 
-                    {(proj.githubUrl || proj.deploymentUrl) && (
+                    {(safeExternalUrl(proj.githubUrl) || safeExternalUrl(proj.deploymentUrl)) && (
                       <div className="flex flex-wrap gap-2 pt-1">
-                        {proj.githubUrl && (
+                        {safeExternalUrl(proj.githubUrl) && (
                           <a
-                            href={proj.githubUrl}
+                            href={safeExternalUrl(proj.githubUrl)}
                             target="_blank"
                             rel="noreferrer"
                             className="group inline-flex items-center gap-1.5 rounded-full df-well px-3.5 py-1.5 text-xs font-medium text-[var(--df-text)] transition-all duration-300 hover:border-[#8F87FA]/60 hover:bg-[var(--df-secondary)] hover:shadow-[0_0_18px_-6px_rgba(109,100,240,0.8)]"
@@ -510,9 +492,9 @@ export default function ProjectsPage() {
                             GitHub <ExternalLink className="h-3 w-3 opacity-60 transition-transform group-hover:-translate-y-px group-hover:translate-x-px" />
                           </a>
                         )}
-                        {proj.deploymentUrl && (
+                        {safeExternalUrl(proj.deploymentUrl) && (
                           <a
-                            href={proj.deploymentUrl}
+                            href={safeExternalUrl(proj.deploymentUrl)}
                             target="_blank"
                             rel="noreferrer"
                             className="group inline-flex items-center gap-1.5 rounded-full border border-[#5EE7F7]/35 bg-[#5EE7F7]/10 px-3.5 py-1.5 text-xs font-medium text-[var(--df-cyan)] transition-all duration-300 hover:border-[#5EE7F7]/60 hover:shadow-[0_0_18px_-6px_rgba(94,231,247,0.8)]"

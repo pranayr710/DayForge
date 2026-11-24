@@ -140,6 +140,28 @@ export function getDayOfWeekFromDateKey(dateKey: string): number {
   return dateKeyToUtcDate(dateKey).getUTCDay();
 }
 
+/**
+ * Converts a stored ISO timestamp (UTC) into the YYYY-MM-DD dateKey as seen in
+ * the given timezone. Prevents events after midnight UTC from being attributed
+ * to the wrong local day (e.g. 02:00 IST → correct IST date, not the UTC date).
+ */
+export function getDateKeyFromIso(iso: string, timezone = 'Asia/Kolkata'): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso.slice(0, 10);
+  return getNowParts(timezone, d).dateKey;
+}
+
+/** Shifts a dateKey by whole calendar months, clamping the day to month length. */
+export function shiftMonthDateKey(dateKey: string, deltaMonths: number): string {
+  const [y, m, d] = dateKey.split('-').map(Number);
+  const base = new Date(Date.UTC(y ?? 2026, (m ?? 1) - 1 + deltaMonths, 1));
+  const year = base.getUTCFullYear();
+  const monthIdx = base.getUTCMonth();
+  const daysInMonth = new Date(Date.UTC(year, monthIdx + 1, 0)).getUTCDate();
+  const day = Math.min(d ?? 1, daysInMonth);
+  return utcDateToDateKey(new Date(Date.UTC(year, monthIdx, day)));
+}
+
 export function getWeekDateKeys(
   anchorDateKey: string,
   weekStartsOn: 'monday' | 'sunday' = 'monday'
