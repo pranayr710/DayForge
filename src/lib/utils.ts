@@ -15,3 +15,19 @@ export function createId(prefix = 'df'): string {
 export function clamp(val: number, min: number, max: number): number {
   return Math.min(Math.max(val, min), max);
 }
+
+/**
+ * Returns a safe href for a user-supplied link, or undefined if it must not be
+ * rendered. Blocks javascript:/data: and similar schemes, upgrades bare domains
+ * (e.g. "www.example.org") to https so they don't resolve as in-app routes.
+ */
+export function safeExternalUrl(raw?: string | null): string | undefined {
+  if (!raw) return undefined;
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+  if (/^(https?:|mailto:)/i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith('//')) return `https:${trimmed}`;
+  // Any other explicit scheme (javascript:, data:, vbscript:, file:, …) is rejected.
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return undefined;
+  return `https://${trimmed}`;
+}

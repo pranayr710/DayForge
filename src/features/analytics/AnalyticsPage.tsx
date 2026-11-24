@@ -26,6 +26,7 @@ import { useIstClock } from '@/hooks/useIstClock';
 import {
   addDaysToDateKey,
   formatDurationMinutes,
+  getDateKeyFromIso,
   getShortDayLabel,
   getWeekDateKeys,
 } from '@/lib/dateUtils';
@@ -74,7 +75,8 @@ export default function AnalyticsPage() {
   const internships = useMemo(() => rawInternships ?? [], [rawInternships]);
   const milestones = useMemo(() => rawMilestones ?? [], [rawMilestones]);
 
-  const istNow = useIstClock(profile?.timezone ?? 'Asia/Kolkata');
+  const timezone = profile?.timezone ?? 'Asia/Kolkata';
+  const istNow = useIstClock(timezone);
   const [period, setPeriod] = useState<AnalyticsPeriod>('weekly');
 
   const weekKeys = useMemo(
@@ -90,7 +92,7 @@ export default function AnalyticsPage() {
           .reduce((acc, s) => acc + s.actualSeconds, 0) / 60
       );
       const tasksDone = tasks.filter(
-        (t) => t.completed && t.completedAt?.startsWith(dk)
+        (t) => t.completed && t.completedAt && getDateKeyFromIso(t.completedAt, timezone) === dk
       ).length;
       const dsaSolved = dsaProblems.filter(
         (p) => p.status === 'solved' && p.dateSolved === dk
@@ -111,10 +113,11 @@ export default function AnalyticsPage() {
         blocksDone,
       };
     });
-  }, [weekKeys, focusSessions, tasks, dsaProblems, templates, instances, profile?.electiveThreeName]);
+  }, [weekKeys, focusSessions, tasks, dsaProblems, templates, instances, profile?.electiveThreeName, timezone]);
 
   const weekStart = weekKeys[0] ?? istNow.dateKey;
-  const monthStart = addDaysToDateKey(istNow.dateKey, -30);
+  // -29 so the inclusive window today..monthStart spans exactly 30 days.
+  const monthStart = addDaysToDateKey(istNow.dateKey, -29);
 
   const weeklyTotals = useMemo(() => {
     const focusMins = Math.round(
@@ -123,7 +126,10 @@ export default function AnalyticsPage() {
         .reduce((acc, s) => acc + s.actualSeconds, 0) / 60
     );
     const tasksDone = tasks.filter(
-      (t) => t.completed && (t.completedAt ?? '').slice(0, 10) >= weekStart
+      (t) =>
+        t.completed &&
+        t.completedAt &&
+        getDateKeyFromIso(t.completedAt, timezone) >= weekStart
     ).length;
     const dsaSolved = dsaProblems.filter(
       (p) => p.status === 'solved' && (p.dateSolved ?? '') >= weekStart
@@ -134,7 +140,7 @@ export default function AnalyticsPage() {
         (l.dailyDevDone || l.hackerNewsDone || l.youtubeDone || l.githubTrendingDone)
     ).length;
     return { focusMins, tasksDone, dsaSolved, awareDays };
-  }, [focusSessions, tasks, dsaProblems, awarenessLogs, weekStart]);
+  }, [focusSessions, tasks, dsaProblems, awarenessLogs, weekStart, timezone]);
 
   const monthlyTotals = useMemo(() => {
     const focusMins = Math.round(
@@ -422,7 +428,7 @@ export default function AnalyticsPage() {
                   <Flag className="h-4 w-4 text-[var(--df-accent-secondary)]" />
                 </ProgressRing>
                 <div className="min-w-0">
-                  <p className="df-eyebrow">Project Milestones Completed</p>
+                  <p className="df-eyebrow">Project Milestones (all-time)</p>
                   <div className="mt-2 flex items-baseline gap-1">
                     <AnimatedNumber value={monthlyTotals.projectMilestonesDone} className={kpiNumber} />
                     <span className="font-mono-tabular text-sm text-[var(--df-text-faint)]">
@@ -443,7 +449,7 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <p className="df-eyebrow">Active Internship Applications</p>
+                  <p className="df-eyebrow">Active Internship Applications (current)</p>
                   <AnimatedNumber
                     value={monthlyTotals.appsActive}
                     className="mt-2 block text-[30px] font-semibold leading-none tracking-[-0.04em] text-[var(--df-accent-secondary)]"
