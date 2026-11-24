@@ -11,11 +11,15 @@ import {
 import { db } from '@/services/storage/db';
 import { useToast } from '@/app/providers/ToastProvider';
 import {
+  addProjectMilestone,
+  addProjectTask,
   deleteProject,
+  toggleProjectMilestone,
+  toggleProjectTask,
   updateProjectTasksAndMilestones,
   upsertProject,
 } from '@/services/storage/repositories';
-import { createId, cn } from '@/lib/utils';
+import { cn, safeExternalUrl } from '@/lib/utils';
 import { formatShortDateLabel } from '@/lib/dateUtils';
 import { ConfirmDialog, EmptyState, PageHeader } from '@/components/shared/SharedComponents';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -239,9 +243,9 @@ export default function ProjectsPage() {
 
                   {proj.techStack.length > 0 && (
                     <div className="flex flex-wrap gap-1">
-                      {proj.techStack.map((tech) => (
+                      {proj.techStack.map((tech, techIdx) => (
                         <span
-                          key={tech}
+                          key={`${tech}-${techIdx}`}
                           className="rounded border border-[var(--df-border)] bg-[var(--df-bg)] px-2 py-0.5 text-[11px] text-[var(--df-text-muted)]"
                         >
                           {tech}
@@ -267,13 +271,7 @@ export default function ProjectsPage() {
                       <button
                         key={m.id}
                         type="button"
-                        onClick={() =>
-                          void updateProjectTasksAndMilestones(proj.id, {
-                            milestones: proj.milestones.map((item) =>
-                              item.id === m.id ? { ...item, completed: !item.completed } : item
-                            ),
-                          })
-                        }
+                        onClick={() => void toggleProjectMilestone(proj.id, m.id)}
                         className="flex w-full items-center gap-2 rounded-lg border border-[var(--df-border)] bg-[var(--df-bg)] px-2.5 py-1.5 text-left text-xs cursor-pointer"
                       >
                         <span
@@ -297,12 +295,7 @@ export default function ProjectsPage() {
                         e.preventDefault();
                         const val = (newMilestoneInput[proj.id] ?? '').trim();
                         if (!val) return;
-                        void updateProjectTasksAndMilestones(proj.id, {
-                          milestones: [
-                            ...proj.milestones,
-                            { id: createId('pm'), title: val, completed: false },
-                          ],
-                        });
+                        void addProjectMilestone(proj.id, val);
                         setNewMilestoneInput((prev) => ({ ...prev, [proj.id]: '' }));
                       }}
                     >
@@ -327,13 +320,7 @@ export default function ProjectsPage() {
                       <button
                         key={t.id}
                         type="button"
-                        onClick={() =>
-                          void updateProjectTasksAndMilestones(proj.id, {
-                            tasks: proj.tasks.map((item) =>
-                              item.id === t.id ? { ...item, completed: !item.completed } : item
-                            ),
-                          })
-                        }
+                        onClick={() => void toggleProjectTask(proj.id, t.id)}
                         className="flex w-full items-center gap-2 rounded-lg border border-[var(--df-border)] bg-[var(--df-bg)] px-2.5 py-1.5 text-left text-xs cursor-pointer"
                       >
                         <span
@@ -357,12 +344,7 @@ export default function ProjectsPage() {
                         e.preventDefault();
                         const val = (newTaskInput[proj.id] ?? '').trim();
                         if (!val) return;
-                        void updateProjectTasksAndMilestones(proj.id, {
-                          tasks: [
-                            ...proj.tasks,
-                            { id: createId('pt'), title: val, completed: false },
-                          ],
-                        });
+                        void addProjectTask(proj.id, val);
                         setNewTaskInput((prev) => ({ ...prev, [proj.id]: '' }));
                       }}
                     >
@@ -380,11 +362,11 @@ export default function ProjectsPage() {
                     </form>
                   </div>
 
-                  {(proj.githubUrl || proj.deploymentUrl) && (
+                  {(safeExternalUrl(proj.githubUrl) || safeExternalUrl(proj.deploymentUrl)) && (
                     <div className="flex flex-wrap gap-2 pt-1">
-                      {proj.githubUrl && (
+                      {safeExternalUrl(proj.githubUrl) && (
                         <a
-                          href={proj.githubUrl}
+                          href={safeExternalUrl(proj.githubUrl)}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex items-center gap-1 rounded-lg border border-[var(--df-border)] px-2.5 py-1 text-xs text-[var(--df-text)] hover:border-[#635BDB]"
@@ -392,9 +374,9 @@ export default function ProjectsPage() {
                           GitHub <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
-                      {proj.deploymentUrl && (
+                      {safeExternalUrl(proj.deploymentUrl) && (
                         <a
-                          href={proj.deploymentUrl}
+                          href={safeExternalUrl(proj.deploymentUrl)}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex items-center gap-1 rounded-lg border border-[var(--df-border)] px-2.5 py-1 text-xs text-[var(--df-text)] hover:border-[#635BDB]"

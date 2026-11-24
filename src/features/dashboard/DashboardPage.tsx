@@ -26,6 +26,7 @@ import {
 } from '@/services/storage/repositories';
 import {
   daysBetweenDateKeys,
+  getDateKeyFromIso,
   formatDurationMinutes,
   formatShortDateLabel,
   formatTime24To12,
@@ -131,15 +132,20 @@ export default function DashboardPage() {
       ? Math.round((completedTodayBlocks / actionableTodayBlocks.length) * 100)
       : 0;
 
+  const timezone = profile?.timezone ?? 'Asia/Kolkata';
+  // "Today's tasks" = open tasks actionable today (due today or overdue) plus
+  // tasks completed today. completedAt is stored in UTC, so compare via IST.
   const todayTasks = useMemo(
     () =>
-      tasks.filter(
-        (t) =>
-          !t.completed ||
-          t.dueDate === istNow.dateKey ||
-          (t.completedAt && t.completedAt.startsWith(istNow.dateKey))
-      ),
-    [tasks, istNow.dateKey]
+      tasks.filter((t) => {
+        if (t.completed) {
+          return t.completedAt
+            ? getDateKeyFromIso(t.completedAt, timezone) === istNow.dateKey
+            : false;
+        }
+        return !t.dueDate || t.dueDate <= istNow.dateKey;
+      }),
+    [tasks, istNow.dateKey, timezone]
   );
 
   const completedTodayTasks = todayTasks.filter((t) => t.completed).length;

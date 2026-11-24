@@ -49,8 +49,9 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { FieldLabel, Input, Select, Textarea } from '@/components/ui/FormControls';
 import { Modal } from '@/components/ui/Modal';
+import { DebouncedTextarea } from '@/components/ui/DebouncedField';
 import { ProgressBar, SegmentedTabs } from '@/components/ui/Primitives';
-import { cn } from '@/lib/utils';
+import { cn, safeExternalUrl } from '@/lib/utils';
 import type { DsaDifficulty, DsaPlatform, DsaProblem, LearningStage, StageStatus } from '@/types';
 
 type HubTab = 'curriculum' | 'dsa' | 'awareness' | 'roadmap';
@@ -183,8 +184,9 @@ export default function LearningHubPage() {
   // Real DSA Analytics
   const dsaStats = useMemo(() => {
     const solved = dsaProblems.filter((p) => p.status === 'solved');
-    const weekAgo = addDaysToDateKey(istNow.dateKey, -7);
-    const monthAgo = addDaysToDateKey(istNow.dateKey, -30);
+    // Inclusive windows: -6 / -29 so they span exactly 7 / 30 days including today.
+    const weekAgo = addDaysToDateKey(istNow.dateKey, -6);
+    const monthAgo = addDaysToDateKey(istNow.dateKey, -29);
     const solvedThisWeek = solved.filter((p) => (p.dateSolved ?? '') >= weekAgo).length;
     const solvedThisMonth = solved.filter((p) => (p.dateSolved ?? '') >= monthAgo).length;
     const revisionBacklog = dsaProblems.filter(
@@ -527,9 +529,9 @@ export default function LearningHubPage() {
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
-                      {prob.solutionLink && (
+                      {safeExternalUrl(prob.solutionLink) && (
                         <a
-                          href={prob.solutionLink}
+                          href={safeExternalUrl(prob.solutionLink)}
                           target="_blank"
                           rel="noreferrer"
                           className="inline-flex h-8 items-center gap-1 rounded-lg border border-[var(--df-border)] px-2.5 text-xs text-[var(--df-text)] hover:border-[#635BDB]"
@@ -662,11 +664,11 @@ export default function LearningHubPage() {
 
                 <div className="pt-2">
                   <FieldLabel htmlFor="aware-notes">Today&apos;s Technology Notes</FieldLabel>
-                  <Textarea
+                  <DebouncedTextarea
                     id="aware-notes"
                     value={todayAwareness?.notes ?? ''}
-                    onChange={(e) =>
-                      void upsertAwarenessLog(istNow.dateKey, { notes: e.target.value })
+                    onCommit={(next) =>
+                      void upsertAwarenessLog(istNow.dateKey, { notes: next })
                     }
                     placeholder="Capture key engineering insights, tools, or papers read today..."
                   />
@@ -843,7 +845,7 @@ export default function LearningHubPage() {
                             {item.read && <Check className="h-3 w-3" />}
                           </button>
                           <a
-                            href={item.url}
+                            href={safeExternalUrl(item.url) ?? '#'}
                             target="_blank"
                             rel="noreferrer"
                             className={cn(
@@ -1027,11 +1029,11 @@ export default function LearningHubPage() {
 
             <div>
               <FieldLabel htmlFor="stage-notes">Personal Stage Notes</FieldLabel>
-              <Textarea
+              <DebouncedTextarea
                 id="stage-notes"
                 value={selectedStage.notes}
-                onChange={(e) =>
-                  void updateLearningStage(selectedStage.id, { notes: e.target.value })
+                onCommit={(next) =>
+                  void updateLearningStage(selectedStage.id, { notes: next })
                 }
                 placeholder="Write summaries, key commands, or revision takeaways..."
               />
@@ -1106,6 +1108,10 @@ export default function LearningHubPage() {
             <div>
               <FieldLabel htmlFor="dsa-attempt">Date Attempted</FieldLabel>
               <Input id="dsa-attempt" type="date" {...register('dateAttempted')} />
+            </div>
+            <div>
+              <FieldLabel htmlFor="dsa-solved">Date Solved</FieldLabel>
+              <Input id="dsa-solved" type="date" {...register('dateSolved')} />
             </div>
             <div>
               <FieldLabel htmlFor="dsa-revisit">Revisit Date</FieldLabel>

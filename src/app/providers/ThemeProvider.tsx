@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '@/services/storage/db';
 import { DEFAULT_USER_ID } from '@/config/personalPlan';
@@ -21,9 +21,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const profile = useLiveQuery(() => db.userProfile.get(DEFAULT_USER_ID), []);
   const theme: ThemeMode = profile?.theme ?? 'dark';
 
-  const systemDark =
-    typeof window !== 'undefined' &&
-    window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+  const [systemDark, setSystemDark] = useState<boolean>(() =>
+    typeof window !== 'undefined'
+      ? (window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false)
+      : false
+  );
+
+  // Keep "system" theme in sync when the OS appearance changes at runtime.
+  useEffect(() => {
+    const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
+    if (!mq) return;
+    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
+    mq.addEventListener?.('change', handler);
+    return () => mq.removeEventListener?.('change', handler);
+  }, []);
+
   const resolvedTheme: 'dark' | 'light' =
     theme === 'system' ? (systemDark ? 'dark' : 'light') : theme;
 
