@@ -200,9 +200,9 @@ export default function DashboardPage() {
   }, [tasks]);
 
   // Real progress calculations
-  const totalConcepts = stages.reduce((acc, s) => acc + s.concepts.length, 0);
+  const totalConcepts = stages.reduce((acc, s) => acc + (s.concepts?.length ?? 0), 0);
   const completedConcepts = stages.reduce(
-    (acc, s) => acc + s.concepts.filter((c) => c.completed).length,
+    (acc, s) => acc + (s.concepts ?? []).filter((c) => c.completed).length,
     0
   );
   const curriculumPct =
@@ -220,11 +220,13 @@ export default function DashboardPage() {
   const activeProjectsPct = useMemo(() => {
     if (projects.length === 0) return 0;
     const sum = projects.reduce((acc, p) => {
-      const total = p.tasks.length + p.milestones.length;
+      const tasks = p.tasks ?? [];
+      const milestones = p.milestones ?? [];
+      const total = tasks.length + milestones.length;
       if (total === 0) return acc;
       const done =
-        p.tasks.filter((t) => t.completed).length +
-        p.milestones.filter((m) => m.completed).length;
+        tasks.filter((t) => t.completed).length +
+        milestones.filter((m) => m.completed).length;
       return acc + Math.round((done / total) * 100);
     }, 0);
     return Math.round(sum / projects.length);

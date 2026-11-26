@@ -27,6 +27,7 @@ import {
 } from '@/services/storage/repositories';
 import { resetRecurringTemplatesToDefaults } from '@/services/storage/seed';
 import { backupPayloadSchema } from '@/lib/validations';
+import { getDateKeyFromIso } from '@/lib/dateUtils';
 import { ConfirmDialog, DayForgeLogo, PageHeader } from '@/components/shared/SharedComponents';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
@@ -99,7 +100,7 @@ export default function SettingsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `dayforge-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `dayforge-backup-${getDateKeyFromIso(new Date().toISOString(), timezone)}.json`;
     a.click();
     URL.revokeObjectURL(url);
     toast('Backup exported as JSON', { tone: 'success' });

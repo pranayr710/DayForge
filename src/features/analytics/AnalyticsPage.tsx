@@ -135,40 +135,45 @@ export default function AnalyticsPage() {
   );
 
   const weekStart = weekKeys[0] ?? istNow.dateKey;
+  const weekEnd = weekKeys[weekKeys.length - 1] ?? istNow.dateKey;
   // -29 so the inclusive window today..monthStart spans exactly 30 days.
   const monthStart = addDaysToDateKey(istNow.dateKey, -29);
+  const todayKey = istNow.dateKey;
 
   const weeklyTotals = useMemo(() => {
     const focusSeconds = focusSessions
-      .filter((s) => s.dateKey >= weekStart)
+      .filter((s) => s.dateKey >= weekStart && s.dateKey <= weekEnd)
       .reduce((acc, s) => acc + s.actualSeconds, 0);
-    const tasksDone = tasks.filter(
-      (t) =>
-        t.completed &&
-        t.completedAt &&
-        getDateKeyFromIso(t.completedAt, timezone) >= weekStart
-    ).length;
+    const tasksDone = tasks.filter((t) => {
+      if (!t.completed || !t.completedAt) return false;
+      const dk = getDateKeyFromIso(t.completedAt, timezone);
+      return dk >= weekStart && dk <= weekEnd;
+    }).length;
     const dsaSolved = dsaProblems.filter(
-      (p) => p.status === 'solved' && (p.dateSolved ?? '') >= weekStart
+      (p) =>
+        p.status === 'solved' &&
+        (p.dateSolved ?? '') >= weekStart &&
+        (p.dateSolved ?? '') <= weekEnd
     ).length;
     const awareDays = awarenessLogs.filter(
       (l) =>
         l.dateKey >= weekStart &&
-        (l.dailyDevDone || l.hackerNewsDone || l.youtubeDone || l.githubTrendingDone)
+        l.dateKey <= weekEnd &&
+        (l.dailyDevDone || l.hackerNewsDone || l.youtubeDone || l.githubTrendingDone || l.notesDone)
     ).length;
     return { focusSeconds, tasksDone, dsaSolved, awareDays };
-  }, [focusSessions, tasks, dsaProblems, awarenessLogs, weekStart, timezone]);
+  }, [focusSessions, tasks, dsaProblems, awarenessLogs, weekStart, weekEnd, timezone]);
 
   const monthlyTotals = useMemo(() => {
     const focusSeconds = focusSessions
-      .filter((s) => s.dateKey >= monthStart)
+      .filter((s) => s.dateKey >= monthStart && s.dateKey <= todayKey)
       .reduce((acc, s) => acc + s.actualSeconds, 0);
     const projectMilestonesDone = projects.reduce(
-      (acc, p) => acc + p.milestones.filter((m) => m.completed).length,
+      (acc, p) => acc + (p.milestones ?? []).filter((m) => m.completed).length,
       0
     );
     const projectMilestonesTotal = projects.reduce(
-      (acc, p) => acc + p.milestones.length,
+      (acc, p) => acc + (p.milestones?.length ?? 0),
       0
     );
     const appsActive = internships.filter(
@@ -181,11 +186,11 @@ export default function AnalyticsPage() {
       projectMilestonesTotal,
       appsActive,
     };
-  }, [focusSessions, projects, internships, monthStart]);
+  }, [focusSessions, projects, internships, monthStart, todayKey]);
 
-  const totalConcepts = stages.reduce((acc, s) => acc + s.concepts.length, 0);
+  const totalConcepts = stages.reduce((acc, s) => acc + (s.concepts?.length ?? 0), 0);
   const completedConcepts = stages.reduce(
-    (acc, s) => acc + s.concepts.filter((c) => c.completed).length,
+    (acc, s) => acc + (s.concepts ?? []).filter((c) => c.completed).length,
     0
   );
   const curriculumPct =

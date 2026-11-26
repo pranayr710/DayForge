@@ -72,27 +72,61 @@ export const customEventFormSchema = z
 
 export type CustomEventFormValues = z.infer<typeof customEventFormSchema>;
 
+// --- Backup import validation ---------------------------------------------
+// The import clears every table and bulk-puts the file's rows, so a malformed
+// file must be rejected BEFORE anything is wiped. We validate with z.any()
+// arrays plus refinements (rather than z.object schemas, which would silently
+// strip unknown keys and drop data) so valid rows pass through untouched while
+// crash-inducing rows — missing `id`, or missing the array fields the UI
+// reduces/filters over — are rejected.
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+const hasStringId = (v: unknown): boolean => isRecord(v) && typeof v.id === 'string' && v.id.length > 0;
+const hasArrays = (v: unknown, keys: string[]): boolean =>
+  isRecord(v) && keys.every((k) => Array.isArray(v[k]));
+
+/** Every row must be an object with a non-empty string id (bulkPut inbound key). */
+function recordArray(message: string) {
+  return z.array(z.any()).refine((rows) => rows.every(hasStringId), { message });
+}
+/** As recordArray, plus required array fields the UI iterates (prevents white-screens). */
+function recordArrayWithArrays(keys: string[], message: string) {
+  return z
+    .array(z.any())
+    .refine((rows) => rows.every((r) => hasStringId(r) && hasArrays(r, keys)), { message });
+}
+
 export const backupPayloadSchema = z.object({
   schemaVersion: z.literal(1),
   exportedAt: z.string(),
   tables: z.object({
-    userProfile: z.array(z.any()),
-    scheduleTemplates: z.array(z.any()),
-    scheduleInstances: z.array(z.any()),
-    tasks: z.array(z.any()),
-    habits: z.array(z.any()),
-    habitLogs: z.array(z.any()),
-    focusSessions: z.array(z.any()),
-    learningStages: z.array(z.any()),
-    dsaProblems: z.array(z.any()),
-    awarenessLogs: z.array(z.any()),
-    savedResources: z.array(z.any()),
-    placementTopics: z.array(z.any()),
-    placementSessions: z.array(z.any()),
-    projects: z.array(z.any()),
-    internshipApplications: z.array(z.any()),
-    mastersMilestones: z.array(z.any()),
-    universities: z.array(z.any()),
-    careerChecklist: z.array(z.any()).optional(),
+    userProfile: recordArray('userProfile rows must each have an id'),
+    scheduleTemplates: recordArray('scheduleTemplates rows must each have an id'),
+    scheduleInstances: recordArray('scheduleInstances rows must each have an id'),
+    tasks: recordArray('tasks rows must each have an id'),
+    habits: recordArray('habits rows must each have an id'),
+    habitLogs: recordArray('habitLogs rows must each have an id'),
+    focusSessions: recordArray('focusSessions rows must each have an id'),
+    learningStages: recordArrayWithArrays(
+      ['concepts'],
+      'learningStages rows must each have an id and a concepts array'
+    ),
+    dsaProblems: recordArray('dsaProblems rows must each have an id'),
+    awarenessLogs: recordArray('awarenessLogs rows must each have an id'),
+    savedResources: recordArray('savedResources rows must each have an id'),
+    placementTopics: recordArray('placementTopics rows must each have an id'),
+    placementSessions: recordArray('placementSessions rows must each have an id'),
+    projects: recordArrayWithArrays(
+      ['tasks', 'milestones', 'techStack'],
+      'projects rows must each have an id and tasks/milestones/techStack arrays'
+    ),
+    internshipApplications: recordArrayWithArrays(
+      ['requiredDocuments'],
+      'internshipApplications rows must each have an id and a requiredDocuments array'
+    ),
+    mastersMilestones: recordArray('mastersMilestones rows must each have an id'),
+    universities: recordArray('universities rows must each have an id'),
+    careerChecklist: recordArray('careerChecklist rows must each have an id').optional(),
   }),
 });

@@ -311,16 +311,6 @@ export async function updateScheduleTemplate(
   });
 }
 
-export async function updateScheduleTemplate(
-  id: string,
-  patch: Partial<Omit<ScheduleTemplate, 'id' | 'userId' | 'createdAt'>>
-): Promise<void> {
-  await db.scheduleTemplates.update(id, {
-    ...patch,
-    updatedAt: new Date().toISOString(),
-  });
-}
-
 export async function deleteScheduleTemplate(id: string): Promise<void> {
   await db.scheduleTemplates.delete(id);
 }
