@@ -32,13 +32,14 @@ import {
   addScheduleTemplate,
   deleteOrSkipScheduleBlock,
   deleteScheduleTemplate,
-  rescheduleScheduleBlock,
   resetScheduleBlockInstance,
+  setScheduleBlockStatus,
   toggleScheduleBlockCompleted,
 } from '@/services/storage/repositories';
 import {
   addDaysToDateKey,
   dateKeyToUtcDate,
+  formatDurationSeconds,
   formatShortDateLabel,
   formatTime24To12,
   getDayOfWeekFromDateKey,
@@ -57,7 +58,15 @@ import { FieldLabel, Input, Select, Textarea } from '@/components/ui/FormControl
 import { Modal } from '@/components/ui/Modal';
 import { Reveal, SegmentedTabs } from '@/components/ui/Primitives';
 import { cn } from '@/lib/utils';
-import type { ResolvedScheduleBlock, ScheduleCategory } from '@/types';
+import type { ResolvedScheduleBlock, ScheduleBlockStatus, ScheduleCategory } from '@/types';
+
+const STATUS_OPTIONS: Array<{ value: ScheduleBlockStatus; label: string }> = [
+  { value: 'planned', label: 'Planned' },
+  { value: 'partial', label: 'Partial' },
+  { value: 'done', label: 'Done' },
+  { value: 'wasted', label: 'Wasted' },
+  { value: 'skipped', label: 'Skipped' },
+];
 
 type ScheduleViewMode = 'day' | 'week' | 'month';
 type SourceFilter = 'all' | 'college' | 'routine' | 'custom';
@@ -114,6 +123,9 @@ export default function SchedulePage() {
   const [rescheduleStart, setRescheduleStart] = useState('');
   const [rescheduleEnd, setRescheduleEnd] = useState('');
   const [inspectorNotes, setInspectorNotes] = useState('');
+  const [inspectorStatus, setInspectorStatus] = useState<ScheduleBlockStatus>('planned');
+  const [inspectorLoggedMin, setInspectorLoggedMin] = useState('0');
+  const [inspectorLoggedSec, setInspectorLoggedSec] = useState('0');
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [templatesModalOpen, setTemplatesModalOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -195,15 +207,30 @@ export default function SchedulePage() {
   }
 
   function openInspector(block: ResolvedScheduleBlock) {
+    const totalSec = block.loggedSeconds ?? 0;
     setSelectedBlock(block);
     setRescheduleStart(block.startTime);
     setRescheduleEnd(block.endTime);
     setInspectorNotes(block.notes ?? '');
+    setInspectorStatus(block.status);
+    setInspectorLoggedMin(String(Math.floor(totalSec / 60)));
+    setInspectorLoggedSec(String(totalSec % 60));
   }
 
   async function handleSaveReschedule() {
     if (!selectedBlock) return;
-    await rescheduleScheduleBlock(selectedBlock, rescheduleStart, rescheduleEnd, inspectorNotes);
+    if (rescheduleStart === rescheduleEnd) {
+      toast('Start and end time cannot be the same', { tone: 'warning' });
+      return;
+    }
+    const mins = Math.max(0, Math.round(Number(inspectorLoggedMin) || 0));
+    const secs = Math.max(0, Math.min(59, Math.round(Number(inspectorLoggedSec) || 0)));
+    await setScheduleBlockStatus(selectedBlock, inspectorStatus, {
+      loggedSeconds: mins * 60 + secs,
+      notes: inspectorNotes,
+      startTime: rescheduleStart,
+      endTime: rescheduleEnd,
+    });
     toast('Activity updated for this date', {
       description: 'Original recurring template remains intact.',
       tone: 'success',
@@ -418,6 +445,13 @@ export default function SchedulePage() {
                   className="absolute left-[7px] top-3 bottom-3 w-px bg-[linear-gradient(180deg,rgba(143,135,250,0.7),var(--df-border)_25%,var(--df-border)_75%,rgba(94,231,247,0.55))] shadow-[0_0_8px_rgba(143,135,250,0.35)]"
                 />
               {dayBlocks.map((block, idx) => {
+                const slotDuration = Math.max(1, block.endMinutes - block.startMinutes);
+                const slotDurationSeconds = slotDuration * 60;
+                const loggedSeconds = block.loggedSeconds ?? 0;
+                const partialPct = Math.min(
+                  100,
+                  Math.round((loggedSeconds / slotDurationSeconds) * 100)
+                );
                 const isCurrent =
                   currentBlock &&
                   currentBlock.startTime === block.startTime &&
@@ -448,14 +482,21 @@ export default function SchedulePage() {
                           'relative z-10 mt-4 flex h-[15px] w-[15px] shrink-0 items-center justify-center rounded-full border transition-all duration-300 cursor-pointer',
                           block.completed
                             ? 'border-[var(--df-success)] bg-[var(--df-success)] text-white shadow-[0_0_12px_rgba(34,197,94,0.7)]'
-                            : isCurrent
-                              ? 'df-dot-live border-[#8F87FA] bg-[var(--df-bg)] text-[#8F87FA] shadow-[0_0_12px_rgba(143,135,250,0.8)]'
-                              : isNext
-                                ? 'border-[var(--df-cyan)] bg-[var(--df-bg)] shadow-[0_0_10px_rgba(94,231,247,0.55)]'
-                                : 'border-[var(--df-border-strong)] bg-[var(--df-bg)] hover:border-[#8F87FA] hover:shadow-[0_0_10px_rgba(143,135,250,0.6)]'
+                            : block.status === 'partial'
+                              ? 'border-[#F0B455] bg-[#F0B455]/25 text-[#F0B455] shadow-[0_0_10px_rgba(240,180,85,0.6)]'
+                              : block.status === 'wasted'
+                                ? 'border-[#F06A6A]/80 bg-[#F06A6A]/20 text-[#F06A6A]'
+                                : isCurrent
+                                  ? 'df-dot-live border-[#8F87FA] bg-[var(--df-bg)] text-[#8F87FA] shadow-[0_0_12px_rgba(143,135,250,0.8)]'
+                                  : isNext
+                                    ? 'border-[var(--df-cyan)] bg-[var(--df-bg)] shadow-[0_0_10px_rgba(94,231,247,0.55)]'
+                                    : 'border-[var(--df-border-strong)] bg-[var(--df-bg)] hover:border-[#8F87FA] hover:shadow-[0_0_10px_rgba(143,135,250,0.6)]'
                         )}
                       >
                         {block.completed && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
+                        {block.status === 'partial' && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-[#F0B455]" />
+                        )}
                       </button>
 
                   <div
@@ -466,7 +507,9 @@ export default function SchedulePage() {
                         ? 'border-[#8F87FA]/45 bg-[linear-gradient(110deg,rgba(109,100,240,0.18),rgba(94,231,247,0.04))] shadow-[0_10px_30px_-14px_rgba(109,100,240,0.8)]'
                         : isNext
                           ? 'border-[var(--df-cyan)]/30 bg-[linear-gradient(110deg,rgba(94,231,247,0.07),transparent_60%)] hover:bg-[var(--df-secondary)]'
-                          : 'border-[var(--df-border)] bg-[var(--df-inset)] hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)]'
+                          : block.status === 'skipped'
+                            ? 'border-[var(--df-border)] bg-[var(--df-inset)] opacity-55'
+                            : 'border-[var(--df-border)] bg-[var(--df-inset)] hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)]'
                     )}
                   >
                       <div className="min-w-0">
@@ -485,6 +528,28 @@ export default function SchedulePage() {
                           </span>
                           {isCurrent && <Badge tone="success">NOW</Badge>}
                           {isNext && <Badge tone="accent">NEXT</Badge>}
+                          {block.status === 'partial' && (
+                            <Badge tone="warning" className="font-mono-tabular">
+                              Partial
+                              {loggedSeconds > 0
+                                ? ` · ${formatDurationSeconds(loggedSeconds)}/${formatDurationSeconds(slotDurationSeconds)}`
+                                : ''}
+                            </Badge>
+                          )}
+                          {block.status === 'done' && loggedSeconds > slotDurationSeconds && (
+                            <Badge tone="warning" className="font-mono-tabular">
+                              Done · +{formatDurationSeconds(loggedSeconds - slotDurationSeconds)} OT
+                            </Badge>
+                          )}
+                          {block.status === 'done' &&
+                            loggedSeconds > 0 &&
+                            loggedSeconds < slotDurationSeconds && (
+                              <Badge tone="success" className="font-mono-tabular">
+                                Done in {formatDurationSeconds(loggedSeconds)}
+                              </Badge>
+                            )}
+                          {block.status === 'wasted' && <Badge tone="error">Wasted</Badge>}
+                          {block.status === 'skipped' && <Badge tone="neutral">Skipped</Badge>}
                           {block.isRescheduled && <Badge tone="warning">Rescheduled</Badge>}
                           {block.hasConflict && (
                             <Badge tone="error">
@@ -501,7 +566,8 @@ export default function SchedulePage() {
                           <p
                             className={cn(
                               'text-sm font-medium text-[var(--df-text)] transition-colors group-hover:text-[var(--df-accent-secondary)]',
-                              block.completed && 'line-through decoration-[var(--df-text-faint)] text-[var(--df-text-muted)]'
+                              (block.completed || block.status === 'skipped') &&
+                                'line-through decoration-[var(--df-text-faint)] text-[var(--df-text-muted)]'
                             )}
                           >
                             {block.subjectCode && (
@@ -515,6 +581,19 @@ export default function SchedulePage() {
                             <p className="mt-0.5 text-xs text-[var(--df-text-muted)]">
                               {[block.subtitle, block.location, block.notes].filter(Boolean).join(' · ')}
                             </p>
+                          )}
+                          {block.status === 'partial' && loggedSeconds > 0 && (
+                            <div className="mt-2 flex max-w-xs items-center gap-2">
+                              <div className="h-1 flex-1 overflow-hidden rounded-full bg-[var(--df-bg)]">
+                                <div
+                                  className="h-full rounded-full bg-[linear-gradient(90deg,#F0B455,#8F87FA)]"
+                                  style={{ width: `${partialPct}%` }}
+                                />
+                              </div>
+                              <span className="font-mono-tabular text-[10px] text-[var(--df-text-faint)]">
+                                {partialPct}%
+                              </span>
+                            </div>
                           )}
                         </button>
                         {(() => {
@@ -549,6 +628,7 @@ export default function SchedulePage() {
                         className="rounded-full"
                         onClick={() =>
                           openFocus({
+                            scheduleBlock: block,
                             taskTitle: block.subjectCode
                               ? `${block.subjectCode} ${block.title}`
                               : block.title,
@@ -872,6 +952,60 @@ export default function SchedulePage() {
                   value={rescheduleEnd}
                   onChange={(e) => setRescheduleEnd(e.target.value)}
                 />
+              </div>
+            </div>
+
+            <div>
+              <FieldLabel>Slot Status</FieldLabel>
+              <div className="flex flex-wrap gap-1.5">
+                {STATUS_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setInspectorStatus(opt.value)}
+                    aria-pressed={inspectorStatus === opt.value}
+                    className={cn(
+                      'rounded-full border px-3 py-1 text-xs font-medium transition-all cursor-pointer',
+                      inspectorStatus === opt.value
+                        ? 'border-transparent bg-[linear-gradient(135deg,#7B72F6,#5145C8)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]'
+                        : 'border-[var(--df-border)] bg-[var(--df-inset)] text-[var(--df-text-muted)] hover:border-[var(--df-border-strong)] hover:text-[var(--df-text)]'
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <FieldLabel>
+                Exact Time Worked ({selectedBlock.endMinutes - selectedBlock.startMinutes}m planned)
+              </FieldLabel>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Input
+                    id="inspector-logged-min"
+                    type="number"
+                    min={0}
+                    max={600}
+                    value={inspectorLoggedMin}
+                    onChange={(e) => setInspectorLoggedMin(e.target.value)}
+                    aria-label="Worked minutes"
+                  />
+                  <span className="mt-1 block text-[10px] text-[var(--df-text-faint)]">Minutes</span>
+                </div>
+                <div>
+                  <Input
+                    id="inspector-logged-sec"
+                    type="number"
+                    min={0}
+                    max={59}
+                    value={inspectorLoggedSec}
+                    onChange={(e) => setInspectorLoggedSec(e.target.value)}
+                    aria-label="Worked seconds"
+                  />
+                  <span className="mt-1 block text-[10px] text-[var(--df-text-faint)]">Seconds</span>
+                </div>
               </div>
             </div>
 

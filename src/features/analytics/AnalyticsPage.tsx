@@ -25,7 +25,7 @@ import { DEFAULT_USER_ID } from '@/config/personalPlan';
 import { useIstClock } from '@/hooks/useIstClock';
 import {
   addDaysToDateKey,
-  formatDurationMinutes,
+  formatDurationSeconds,
   getDateKeyFromIso,
   getShortDayLabel,
   getWeekDateKeys,
@@ -102,7 +102,9 @@ export default function AnalyticsPage() {
         templates,
         instances,
         electiveThreeName: profile?.electiveThreeName,
-      }).filter((b) => b.category !== 'break' && b.title !== 'Sleep');
+      }).filter(
+        (b) => b.category !== 'break' && b.title !== 'Sleep' && b.status !== 'skipped'
+      );
       const blocksDone = dayBlocks.filter((b) => b.completed).length;
 
       return {
@@ -120,11 +122,9 @@ export default function AnalyticsPage() {
   const monthStart = addDaysToDateKey(istNow.dateKey, -29);
 
   const weeklyTotals = useMemo(() => {
-    const focusMins = Math.round(
-      focusSessions
-        .filter((s) => s.dateKey >= weekStart)
-        .reduce((acc, s) => acc + s.actualSeconds, 0) / 60
-    );
+    const focusSeconds = focusSessions
+      .filter((s) => s.dateKey >= weekStart)
+      .reduce((acc, s) => acc + s.actualSeconds, 0);
     const tasksDone = tasks.filter(
       (t) =>
         t.completed &&
@@ -139,15 +139,13 @@ export default function AnalyticsPage() {
         l.dateKey >= weekStart &&
         (l.dailyDevDone || l.hackerNewsDone || l.youtubeDone || l.githubTrendingDone)
     ).length;
-    return { focusMins, tasksDone, dsaSolved, awareDays };
+    return { focusSeconds, tasksDone, dsaSolved, awareDays };
   }, [focusSessions, tasks, dsaProblems, awarenessLogs, weekStart, timezone]);
 
   const monthlyTotals = useMemo(() => {
-    const focusMins = Math.round(
-      focusSessions
-        .filter((s) => s.dateKey >= monthStart)
-        .reduce((acc, s) => acc + s.actualSeconds, 0) / 60
-    );
+    const focusSeconds = focusSessions
+      .filter((s) => s.dateKey >= monthStart)
+      .reduce((acc, s) => acc + s.actualSeconds, 0);
     const projectMilestonesDone = projects.reduce(
       (acc, p) => acc + p.milestones.filter((m) => m.completed).length,
       0
@@ -161,7 +159,7 @@ export default function AnalyticsPage() {
     ).length;
 
     return {
-      focusMins,
+      focusSeconds,
       projectMilestonesDone,
       projectMilestonesTotal,
       appsActive,
@@ -235,8 +233,8 @@ export default function AnalyticsPage() {
                   <div className="min-w-0">
                     <p className="df-eyebrow">Study / Focus Hours</p>
                     <AnimatedNumber
-                      value={weeklyTotals.focusMins}
-                      format={(n) => formatDurationMinutes(Math.round(n))}
+                      value={weeklyTotals.focusSeconds}
+                      format={(n) => formatDurationSeconds(Math.round(n))}
                       className={cn('mt-2 block', kpiNumber)}
                     />
                     <p className="mt-1.5 text-[11px] text-[var(--df-text-muted)]">focus logged</p>
@@ -413,8 +411,8 @@ export default function AnalyticsPage() {
                 <div className="min-w-0">
                   <p className="df-eyebrow">Focus Time (30 Days)</p>
                   <AnimatedNumber
-                    value={monthlyTotals.focusMins}
-                    format={(n) => formatDurationMinutes(Math.round(n))}
+                    value={monthlyTotals.focusSeconds}
+                    format={(n) => formatDurationSeconds(Math.round(n))}
                     className={cn('mt-2 block', kpiNumber)}
                   />
                 </div>

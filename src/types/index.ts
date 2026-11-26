@@ -15,6 +15,7 @@ export type ScheduleCategory =
   | 'personal';
 
 export type ScheduleSource = 'college' | 'routine' | 'custom';
+export type ScheduleBlockStatus = 'planned' | 'partial' | 'done' | 'wasted' | 'skipped';
 
 export interface UserProfile {
   id: string;
@@ -64,6 +65,9 @@ export interface ScheduleInstance {
   endTime: string;
   completed: boolean;
   completedAt?: string;
+  status?: ScheduleBlockStatus;
+  loggedMinutes?: number;
+  loggedSeconds?: number;
   isCustom: boolean;
   isCancelled: boolean;
   notes?: string;
@@ -88,6 +92,9 @@ export interface ResolvedScheduleBlock {
   crossesMidnight: boolean;
   completed: boolean;
   completedAt?: string;
+  status: ScheduleBlockStatus;
+  loggedMinutes: number;
+  loggedSeconds: number;
   isCustom: boolean;
   isRescheduled: boolean;
   notes?: string;
@@ -148,10 +155,15 @@ export interface FocusSession {
   id: string;
   userId: string;
   taskId?: string;
+  scheduleDateKey?: string;
+  scheduleTemplateId?: string;
+  scheduleInstanceId?: string;
   taskTitle: string;
   objective?: string;
   plannedMinutes: number;
   actualSeconds: number;
+  markedCompleted?: boolean;
+  completedEarly?: boolean;
   notes?: string;
   startedAt: string;
   endedAt: string;

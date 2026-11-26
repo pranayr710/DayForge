@@ -38,6 +38,7 @@ import {
   daysBetweenDateKeys,
   getDateKeyFromIso,
   formatDurationMinutes,
+  formatDurationSeconds,
   formatShortDateLabel,
   formatTime24To12,
   getGreeting,
@@ -132,7 +133,10 @@ export default function DashboardPage() {
   );
 
   const actionableTodayBlocks = useMemo(
-    () => todaySchedule.filter((b) => b.category !== 'break' && b.title !== 'Sleep'),
+    () =>
+      todaySchedule.filter(
+        (b) => b.category !== 'break' && b.title !== 'Sleep' && b.status !== 'skipped'
+      ),
     [todaySchedule]
   );
 
@@ -159,11 +163,10 @@ export default function DashboardPage() {
   );
 
   const completedTodayTasks = todayTasks.filter((t) => t.completed).length;
-  const focusMinutesToday = useMemo(() => {
-    const secs = focusSessions
+  const focusSecondsToday = useMemo(() => {
+    return focusSessions
       .filter((s) => s.dateKey === istNow.dateKey)
       .reduce((acc, s) => acc + s.actualSeconds, 0);
-    return Math.round(secs / 60);
   }, [focusSessions, istNow.dateKey]);
 
   const priorityTasks = useMemo(() => {
@@ -278,7 +281,9 @@ export default function DashboardPage() {
         templates,
         instances,
         electiveThreeName: profile?.electiveThreeName,
-      }).filter((b) => b.category !== 'break' && b.title !== 'Sleep');
+      }).filter(
+        (b) => b.category !== 'break' && b.title !== 'Sleep' && b.status !== 'skipped'
+      );
       const done = dayBlocks.filter((b) => b.completed).length;
       const pct = dayBlocks.length > 0 ? Math.round((done / dayBlocks.length) * 100) : 0;
       return {
@@ -446,6 +451,7 @@ export default function DashboardPage() {
                   size="lg"
                   onClick={() =>
                     openFocus({
+                      scheduleBlock: currentBlock,
                       taskTitle: currentBlock.subjectCode
                         ? `${currentBlock.subjectCode} ${currentBlock.title}`
                         : currentBlock.title,
@@ -529,8 +535,8 @@ export default function DashboardPage() {
                 <p className="df-eyebrow">Focus Time Today</p>
                 <div className="mt-1 flex items-baseline gap-1.5">
                   <AnimatedNumber
-                    value={focusMinutesToday}
-                    format={(n) => formatDurationMinutes(n)}
+                    value={focusSecondsToday}
+                    format={(n) => formatDurationSeconds(n)}
                     className="text-[32px] font-semibold leading-none tracking-[-0.04em] text-[var(--df-text)]"
                   />
                   <span className="text-xs text-[var(--df-text-faint)]">logged</span>
@@ -612,6 +618,13 @@ export default function DashboardPage() {
                     />
                     {todaySchedule.map((block, idx) => {
                       const style = CATEGORY_ACCENT[block.category];
+                      const slotDuration = Math.max(1, block.endMinutes - block.startMinutes);
+                      const slotDurationSeconds = slotDuration * 60;
+                      const loggedSeconds = block.loggedSeconds ?? 0;
+                      const partialPct = Math.min(
+                        100,
+                        Math.round((loggedSeconds / slotDurationSeconds) * 100)
+                      );
                       const isCurrent =
                         currentBlock &&
                         currentBlock.templateId === block.templateId &&
@@ -636,12 +649,19 @@ export default function DashboardPage() {
                               'relative z-10 mt-3 flex h-[15px] w-[15px] shrink-0 items-center justify-center rounded-full border transition-all duration-300 cursor-pointer',
                               block.completed
                                 ? 'border-[var(--df-success)] bg-[var(--df-success)] text-white shadow-[0_0_12px_rgba(34,197,94,0.7)]'
-                                : isCurrent
-                                  ? 'df-dot-live border-[#8F87FA] bg-[var(--df-bg)] text-[#8F87FA] shadow-[0_0_12px_rgba(143,135,250,0.8)]'
-                                  : 'border-[var(--df-border-strong)] bg-[var(--df-bg)] hover:border-[#8F87FA] hover:shadow-[0_0_10px_rgba(143,135,250,0.6)]'
+                                : block.status === 'partial'
+                                  ? 'border-[#F0B455] bg-[#F0B455]/25 text-[#F0B455] shadow-[0_0_10px_rgba(240,180,85,0.6)]'
+                                  : block.status === 'wasted'
+                                    ? 'border-[#F06A6A]/80 bg-[#F06A6A]/20 text-[#F06A6A]'
+                                    : isCurrent
+                                      ? 'df-dot-live border-[#8F87FA] bg-[var(--df-bg)] text-[#8F87FA] shadow-[0_0_12px_rgba(143,135,250,0.8)]'
+                                      : 'border-[var(--df-border-strong)] bg-[var(--df-bg)] hover:border-[#8F87FA] hover:shadow-[0_0_10px_rgba(143,135,250,0.6)]'
                             )}
                           >
                             {block.completed && <Check className="h-2.5 w-2.5" strokeWidth={3} />}
+                            {block.status === 'partial' && (
+                              <span className="h-1.5 w-1.5 rounded-full bg-[#F0B455]" />
+                            )}
                           </button>
 
                           <div
@@ -650,7 +670,9 @@ export default function DashboardPage() {
                               style.border,
                               isCurrent
                                 ? 'border-[#8F87FA]/45 bg-[linear-gradient(110deg,rgba(109,100,240,0.18),rgba(94,231,247,0.04))] shadow-[0_10px_30px_-14px_rgba(109,100,240,0.8)]'
-                                : 'border-[var(--df-border)] bg-[var(--df-inset)] hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)]'
+                                : block.status === 'skipped'
+                                  ? 'border-[var(--df-border)] bg-[var(--df-inset)] opacity-55'
+                                  : 'border-[var(--df-border)] bg-[var(--df-inset)] hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)]'
                             )}
                           >
                             <div className="flex flex-wrap items-center gap-2">
@@ -666,6 +688,28 @@ export default function DashboardPage() {
                                 {style.label}
                               </span>
                               {isCurrent && <Badge tone="success">Now</Badge>}
+                              {block.status === 'partial' && (
+                                <Badge tone="warning" className="font-mono-tabular">
+                                  Partial
+                                  {loggedSeconds > 0
+                                    ? ` · ${formatDurationSeconds(loggedSeconds)}/${formatDurationSeconds(slotDurationSeconds)}`
+                                    : ''}
+                                </Badge>
+                              )}
+                              {block.status === 'done' && loggedSeconds > slotDurationSeconds && (
+                                <Badge tone="warning" className="font-mono-tabular">
+                                  Done · +{formatDurationSeconds(loggedSeconds - slotDurationSeconds)} OT
+                                </Badge>
+                              )}
+                              {block.status === 'done' &&
+                                loggedSeconds > 0 &&
+                                loggedSeconds < slotDurationSeconds && (
+                                  <Badge tone="success" className="font-mono-tabular">
+                                    Done · {formatDurationSeconds(loggedSeconds)}
+                                  </Badge>
+                                )}
+                              {block.status === 'wasted' && <Badge tone="error">Wasted</Badge>}
+                              {block.status === 'skipped' && <Badge tone="neutral">Skipped</Badge>}
                               {block.hasConflict && (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-[#F06A6A]/15 px-2 py-0.5 text-[10px] text-[var(--df-error)]">
                                   <AlertCircle className="h-3 w-3" /> Overlap
@@ -676,7 +720,8 @@ export default function DashboardPage() {
                             <p
                               className={cn(
                                 'mt-1 text-sm font-medium text-[var(--df-text)]',
-                                block.completed && 'line-through decoration-[var(--df-text-faint)] text-[var(--df-text-muted)]'
+                                (block.completed || block.status === 'skipped') &&
+                                  'line-through decoration-[var(--df-text-faint)] text-[var(--df-text-muted)]'
                               )}
                             >
                               {block.subjectCode && (
@@ -690,6 +735,19 @@ export default function DashboardPage() {
                               <p className="mt-0.5 text-xs text-[var(--df-text-muted)]">
                                 {[block.subtitle, block.location].filter(Boolean).join(' · ')}
                               </p>
+                            )}
+                            {block.status === 'partial' && loggedSeconds > 0 && (
+                              <div className="mt-2 flex items-center gap-2">
+                                <div className="h-1 flex-1 overflow-hidden rounded-full bg-[var(--df-bg)]">
+                                  <div
+                                    className="h-full rounded-full bg-[linear-gradient(90deg,#F0B455,#8F87FA)]"
+                                    style={{ width: `${partialPct}%` }}
+                                  />
+                                </div>
+                                <span className="font-mono-tabular text-[10px] text-[var(--df-text-faint)]">
+                                  {partialPct}%
+                                </span>
+                              </div>
                             )}
                             {(() => {
                               const links = getQuickLinksForScheduleBlock(

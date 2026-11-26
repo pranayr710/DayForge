@@ -61,7 +61,7 @@ export function AppShell() {
   const online = useOnlineStatus();
   const profile = useLiveQuery(() => db.userProfile.get(DEFAULT_USER_ID), []);
   const istNow = useIstClock(profile?.timezone ?? 'Asia/Kolkata');
-  const { openFocus, isRunning, remainingSeconds } = useFocusTimer();
+  const { openFocus, isRunning, remainingSeconds, overtimeSeconds } = useFocusTimer();
   const location = useLocation();
   const reduced = useReducedMotion();
 
@@ -71,7 +71,10 @@ export function AppShell() {
 
   // Purely visual: how far through the day we are (drives the header light line).
   const dayProgressPct = Math.round((istNow.minutesFromMidnight / 1440) * 100);
-  const focusClock = `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, '0')}`;
+  const focusClock =
+    overtimeSeconds > 0
+      ? `+${Math.floor(overtimeSeconds / 60)}:${String(overtimeSeconds % 60).padStart(2, '0')}`
+      : `${Math.floor(remainingSeconds / 60)}:${String(remainingSeconds % 60).padStart(2, '0')}`;
 
   return (
     <div className="min-h-[100dvh] df-ambient-canvas text-[var(--df-text)] flex flex-col lg:flex-row">
@@ -279,7 +282,13 @@ export function AppShell() {
                 className="h-8 rounded-full px-3 text-xs"
               >
                 <Timer className="h-3.5 w-3.5" />
-                <span>{isRunning ? `${Math.floor(remainingSeconds / 60)}m` : 'Focus'}</span>
+                <span>
+                  {isRunning
+                    ? overtimeSeconds > 0
+                      ? `+${Math.floor(overtimeSeconds / 60)}m`
+                      : `${Math.floor(remainingSeconds / 60)}m`
+                    : 'Focus'}
+                </span>
               </Button>
             </div>
           </div>

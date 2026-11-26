@@ -62,6 +62,12 @@ export function resolveDaySchedule(params: {
       endTime
     );
 
+    const status =
+      override?.status ?? (override?.completed ? 'done' : 'planned');
+    const loggedSeconds =
+      override?.loggedSeconds ??
+      (override?.loggedMinutes != null ? override.loggedMinutes * 60 : 0);
+
     resolved.push({
       instanceId: override?.id,
       templateId: tpl.id,
@@ -77,8 +83,11 @@ export function resolveDaySchedule(params: {
       startMinutes,
       endMinutes,
       crossesMidnight,
-      completed: override?.completed ?? false,
+      completed: status === 'done',
       completedAt: override?.completedAt,
+      status,
+      loggedMinutes: Math.floor(loggedSeconds / 60),
+      loggedSeconds,
       isCustom: false,
       isRescheduled: Boolean(
         override &&
@@ -94,6 +103,10 @@ export function resolveDaySchedule(params: {
       custom.startTime,
       custom.endTime
     );
+    const status = custom.status ?? (custom.completed ? 'done' : 'planned');
+    const loggedSeconds =
+      custom.loggedSeconds ??
+      (custom.loggedMinutes != null ? custom.loggedMinutes * 60 : 0);
     resolved.push({
       instanceId: custom.id,
       dateKey,
@@ -108,8 +121,11 @@ export function resolveDaySchedule(params: {
       startMinutes,
       endMinutes,
       crossesMidnight,
-      completed: custom.completed,
+      completed: status === 'done',
       completedAt: custom.completedAt,
+      status,
+      loggedMinutes: Math.floor(loggedSeconds / 60),
+      loggedSeconds,
       isCustom: true,
       isRescheduled: false,
       notes: custom.notes,

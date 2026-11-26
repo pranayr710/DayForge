@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Pause, Play, CheckSquare, Timer, X } from 'lucide-react';
+import { CheckCircle2, CheckSquare, Pause, Play, RotateCcw, Timer, X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useFocusTimer } from '@/app/providers/FocusProvider';
+import { formatDurationSeconds } from '@/lib/dateUtils';
 import { Button } from '@/components/ui/Button';
 import { Input, Textarea } from '@/components/ui/FormControls';
 import { cn } from '@/lib/utils';
@@ -18,14 +19,18 @@ export function FocusModal() {
   const {
     isOpen,
     isRunning,
+    hasLinkedTask,
+    hasLinkedSchedule,
     taskTitle,
     objective,
     plannedMinutes,
     remainingSeconds,
     elapsedSeconds,
+    overtimeSeconds,
     notes,
     setNotes,
     closeFocus,
+    resetFocus,
     setDurationMinutes,
     toggleRun,
     finishSession,
@@ -33,9 +38,10 @@ export function FocusModal() {
 
   const [customInput, setCustomInput] = useState('');
   const reduced = useReducedMotion();
+  const isLinked = hasLinkedTask || hasLinkedSchedule;
 
   const totalTargetSeconds = Math.max(1, plannedMinutes * 60);
-  const progress = Math.min(1, Math.max(0, 1 - remainingSeconds / totalTargetSeconds));
+  const progress = Math.min(1, Math.max(0, elapsedSeconds / totalTargetSeconds));
   const radius = 88;
   const circumference = 2 * Math.PI * radius;
   const strokeOffset = circumference * (1 - progress);
@@ -186,16 +192,32 @@ export function FocusModal() {
                   )}
                 </svg>
                 <div className="absolute flex flex-col items-center">
-                  <span className="font-mono-tabular text-[46px] font-semibold leading-none tracking-[-0.04em] text-[var(--df-text)] drop-shadow-[0_0_24px_rgba(143,135,250,0.45)]">
-                    {formatClock(remainingSeconds)}
+                  <span
+                    className={cn(
+                      'font-mono-tabular text-[44px] font-semibold leading-none tracking-[-0.04em] drop-shadow-[0_0_24px_rgba(143,135,250,0.45)]',
+                      overtimeSeconds > 0 ? 'text-[var(--df-warning)]' : 'text-[var(--df-text)]'
+                    )}
+                  >
+                    {overtimeSeconds > 0
+                      ? `+${formatClock(overtimeSeconds)}`
+                      : formatClock(remainingSeconds)}
                   </span>
                   <span className="mt-2 df-eyebrow">
-                    {isRunning ? 'remaining' : elapsedSeconds > 0 ? 'paused' : 'ready'}
+                    {overtimeSeconds > 0
+                      ? isRunning
+                        ? 'overtime'
+                        : 'overtime · paused'
+                      : isRunning
+                        ? 'remaining'
+                        : elapsedSeconds > 0
+                          ? 'paused'
+                          : 'ready'}
                   </span>
                 </div>
               </div>
               <span className="mt-4 rounded-full df-well px-3 py-1 font-mono-tabular text-[11px] text-[var(--df-text-muted)]">
-                Logged {Math.floor(elapsedSeconds / 60)}m {elapsedSeconds % 60}s · Target {plannedMinutes}m
+                Logged {formatDurationSeconds(elapsedSeconds)} · Target {plannedMinutes}m
+                {overtimeSeconds > 0 ? ` (+${formatDurationSeconds(overtimeSeconds)} OT)` : ''}
               </span>
             </div>
 
@@ -258,8 +280,8 @@ export function FocusModal() {
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <Button variant="primary" size="lg" className="flex-1 rounded-2xl" onClick={toggleRun}>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button variant="primary" size="lg" className="min-w-[130px] flex-1 rounded-2xl" onClick={toggleRun}>
                 {isRunning ? (
                   <>
                     <Pause className="h-4 w-4" />
@@ -272,15 +294,52 @@ export function FocusModal() {
                   </>
                 )}
               </Button>
-              <Button variant="secondary" size="lg" className="rounded-2xl" onClick={() => void finishSession()}>
-                <CheckSquare className="h-4 w-4" />
-                Finish Session
-              </Button>
+              {isLinked ? (
+                <>
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    className="rounded-2xl"
+                    onClick={() => void finishSession('partial')}
+                  >
+                    <CheckSquare className="h-4 w-4" />
+                    {hasLinkedSchedule ? 'Log Partial' : 'Save Partial'}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="rounded-2xl bg-[linear-gradient(135deg,#22C55E,#16A34A)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_10px_24px_-8px_rgba(34,197,94,0.8)] hover:brightness-110"
+                    onClick={() => void finishSession('done')}
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    Done
+                  </Button>
+                </>
+              ) : (
+                <Button variant="secondary" size="lg" className="rounded-2xl" onClick={() => void finishSession('session')}>
+                  <CheckSquare className="h-4 w-4" />
+                  Finish Session
+                </Button>
+              )}
             </div>
 
-            <p className="mt-4 text-center text-[11px] leading-relaxed text-[var(--df-text-faint)]">
-              Finishing logs your actual focus time without automatically marking the task completed.
-            </p>
+            <div className="mt-4 flex flex-col items-center gap-2 text-center">
+              <p className="text-[11px] leading-relaxed text-[var(--df-text-faint)]">
+                {isLinked
+                  ? 'Tap Done anytime (even early) to complete the linked item, or Log Partial to record progress.'
+                  : 'Finishing logs your actual focus time to Analytics.'}
+              </p>
+              {(elapsedSeconds > 0 || isRunning) && (
+                <button
+                  type="button"
+                  onClick={resetFocus}
+                  className="inline-flex items-center gap-1 text-[11px] text-[var(--df-text-muted)] hover:text-[var(--df-error)] cursor-pointer transition-colors"
+                >
+                  <RotateCcw className="h-3 w-3" />
+                  Discard current timer
+                </button>
+              )}
+            </div>
           </motion.div>
         </motion.div>
       )}

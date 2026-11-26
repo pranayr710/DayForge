@@ -18,6 +18,7 @@ import type {
   ProjectItem,
   ResolvedScheduleBlock,
   SavedTechResource,
+  ScheduleBlockStatus,
   ScheduleInstance,
   ScheduleTemplate,
   StageStatus,
@@ -39,43 +40,148 @@ export async function updateUserProfile(
 }
 
 // --- Schedule Operations ---
+async function findExistingScheduleInstance(
+  block: Pick<ResolvedScheduleBlock, 'instanceId' | 'dateKey' | 'templateId'>
+): Promise<ScheduleInstance | undefined> {
+  if (block.instanceId) {
+    const byId = await db.scheduleInstances.get(block.instanceId);
+    if (byId) return byId;
+  }
+  if (block.templateId) {
+    return db.scheduleInstances
+      .where('[dateKey+templateId]')
+      .equals([block.dateKey, block.templateId])
+      .first();
+  }
+  return undefined;
+}
+
 export async function toggleScheduleBlockCompleted(
   block: ResolvedScheduleBlock
 ): Promise<void> {
   const nowIso = new Date().toISOString();
   const nextCompleted = !block.completed;
 
-  if (block.instanceId) {
-    await db.scheduleInstances.update(block.instanceId, {
+  await db.transaction('rw', db.scheduleInstances, async () => {
+    const existing = await findExistingScheduleInstance(block);
+    const loggedSeconds =
+      existing?.loggedSeconds ??
+      (existing?.loggedMinutes != null ? existing.loggedMinutes * 60 : block.loggedSeconds ?? 0);
+    const nextStatus: ScheduleBlockStatus = nextCompleted
+      ? 'done'
+      : loggedSeconds > 0
+        ? 'partial'
+        : 'planned';
+
+    if (existing) {
+      await db.scheduleInstances.update(existing.id, {
+        completed: nextCompleted,
+        completedAt: nextCompleted ? nowIso : undefined,
+        status: nextStatus,
+        updatedAt: nowIso,
+      });
+      return;
+    }
+
+    const instance: ScheduleInstance = {
+      id: createId('sinst'),
+      userId: DEFAULT_USER_ID,
+      dateKey: block.dateKey,
+      templateId: block.templateId,
+      source: block.source,
+      category: block.category,
+      subjectCode: block.subjectCode,
+      title: block.title,
+      subtitle: block.subtitle,
+      location: block.location,
+      startTime: block.startTime,
+      endTime: block.endTime,
       completed: nextCompleted,
       completedAt: nextCompleted ? nowIso : undefined,
+      status: nextStatus,
+      loggedMinutes: loggedSeconds > 0 ? Math.floor(loggedSeconds / 60) : undefined,
+      loggedSeconds: loggedSeconds > 0 ? loggedSeconds : undefined,
+      isCustom: false,
+      isCancelled: false,
+      notes: block.notes,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+    await db.scheduleInstances.put(instance);
+  });
+}
+
+export async function setScheduleBlockStatus(
+  block: ResolvedScheduleBlock,
+  status: ScheduleBlockStatus,
+  opts?: {
+    addSeconds?: number;
+    loggedSeconds?: number;
+    notes?: string;
+    startTime?: string;
+    endTime?: string;
+  }
+): Promise<void> {
+  const nowIso = new Date().toISOString();
+  const nextCompleted = status === 'done';
+
+  await db.transaction('rw', db.scheduleInstances, async () => {
+    const existing = await findExistingScheduleInstance(block);
+    const prevSeconds =
+      existing?.loggedSeconds ??
+      (existing?.loggedMinutes != null ? existing.loggedMinutes * 60 : block.loggedSeconds ?? 0);
+    const nextSeconds =
+      opts?.loggedSeconds !== undefined
+        ? Math.max(0, Math.round(opts.loggedSeconds))
+        : opts?.addSeconds !== undefined
+          ? Math.max(0, prevSeconds + Math.round(opts.addSeconds))
+          : prevSeconds;
+    const nextMinutes = Math.floor(nextSeconds / 60);
+    const nextNotes =
+      opts?.notes !== undefined ? opts.notes : (existing?.notes ?? block.notes);
+
+    if (existing) {
+      await db.scheduleInstances.update(existing.id, {
+        status,
+        completed: nextCompleted,
+        completedAt: nextCompleted
+          ? (existing.completedAt ?? nowIso)
+          : undefined,
+        loggedMinutes: nextMinutes,
+        loggedSeconds: nextSeconds,
+        notes: nextNotes,
+        ...(opts?.startTime ? { startTime: opts.startTime } : {}),
+        ...(opts?.endTime ? { endTime: opts.endTime } : {}),
+        updatedAt: nowIso,
+      });
+      return;
+    }
+
+    await db.scheduleInstances.put({
+      id: createId('sinst'),
+      userId: DEFAULT_USER_ID,
+      dateKey: block.dateKey,
+      templateId: block.templateId,
+      source: block.source,
+      category: block.category,
+      subjectCode: block.subjectCode,
+      title: block.title,
+      subtitle: block.subtitle,
+      location: block.location,
+      startTime: opts?.startTime ?? block.startTime,
+      endTime: opts?.endTime ?? block.endTime,
+      completed: nextCompleted,
+      completedAt: nextCompleted ? nowIso : undefined,
+      status,
+      loggedMinutes: nextMinutes,
+      loggedSeconds: nextSeconds,
+      isCustom: block.isCustom,
+      isCancelled: false,
+      notes: nextNotes,
+      createdAt: nowIso,
       updatedAt: nowIso,
     });
-    return;
-  }
-
-  const instance: ScheduleInstance = {
-    id: createId('sinst'),
-    userId: DEFAULT_USER_ID,
-    dateKey: block.dateKey,
-    templateId: block.templateId,
-    source: block.source,
-    category: block.category,
-    subjectCode: block.subjectCode,
-    title: block.title,
-    subtitle: block.subtitle,
-    location: block.location,
-    startTime: block.startTime,
-    endTime: block.endTime,
-    completed: nextCompleted,
-    completedAt: nextCompleted ? nowIso : undefined,
-    isCustom: false,
-    isCancelled: false,
-    notes: block.notes,
-    createdAt: nowIso,
-    updatedAt: nowIso,
-  };
-  await db.scheduleInstances.put(instance);
+  });
 }
 
 export async function rescheduleScheduleBlock(

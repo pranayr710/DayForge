@@ -118,6 +118,22 @@ export function formatDurationMinutes(totalMins: number): string {
   return `${h}h ${m}m`;
 }
 
+export function formatDurationSeconds(totalSeconds: number): string {
+  const secs = Math.max(0, Math.round(totalSeconds));
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  if (h > 0) {
+    if (m === 0 && s === 0) return `${h}h`;
+    if (s === 0) return `${h}h ${m}m`;
+    return `${h}h ${m}m ${s}s`;
+  }
+  if (m > 0) {
+    return s === 0 ? `${m}m` : `${m}m ${s}s`;
+  }
+  return `${s}s`;
+}
+
 export function dateKeyToUtcDate(dateKey: string): Date {
   const [y, m, d] = dateKey.split('-').map(Number);
   return new Date(Date.UTC(y ?? 2026, (m ?? 1) - 1, d ?? 1));
