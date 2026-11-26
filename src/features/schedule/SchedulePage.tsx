@@ -35,6 +35,7 @@ import {
   resetScheduleBlockInstance,
   setScheduleBlockStatus,
   toggleScheduleBlockCompleted,
+  updateScheduleTemplate,
 } from '@/services/storage/repositories';
 import {
   addDaysToDateKey,
@@ -138,6 +139,7 @@ export default function SchedulePage() {
   const [tplCategory, setTplCategory] = useState<ScheduleCategory>('class');
   const [tplStart, setTplStart] = useState('08:00');
   const [tplEnd, setTplEnd] = useState('08:50');
+  const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
 
   const {
     register,
@@ -166,12 +168,24 @@ export default function SchedulePage() {
     return resolved.filter((b) => b.source === sourceFilter);
   }, [selectedDateKey, templates, instances, profile?.electiveThreeName, sourceFilter]);
 
+  const yesterdayBlocks = useMemo(() => {
+    if (selectedDateKey !== istNow.dateKey) return [];
+    const resolved = resolveDaySchedule({
+      dateKey: addDaysToDateKey(istNow.dateKey, -1),
+      templates,
+      instances,
+      electiveThreeName: profile?.electiveThreeName,
+    });
+    if (sourceFilter === 'all') return resolved;
+    return resolved.filter((b) => b.source === sourceFilter);
+  }, [selectedDateKey, istNow.dateKey, templates, instances, profile?.electiveThreeName, sourceFilter]);
+
   const { currentBlock, nextBlock } = useMemo(
     () =>
       selectedDateKey === istNow.dateKey
-        ? findCurrentAndNextBlocks(dayBlocks, istNow.minutesFromMidnight)
+        ? findCurrentAndNextBlocks(dayBlocks, istNow.minutesFromMidnight, yesterdayBlocks)
         : { currentBlock: null, nextBlock: null },
-    [dayBlocks, selectedDateKey, istNow.dateKey, istNow.minutesFromMidnight]
+    [dayBlocks, yesterdayBlocks, selectedDateKey, istNow.dateKey, istNow.minutesFromMidnight]
   );
 
   const weekDateKeys = useMemo(
@@ -189,6 +203,24 @@ export default function SchedulePage() {
       ),
     [monthAnchor, profile?.weekStartsOn]
   );
+
+  const monthCellMap = useMemo(() => {
+    const map = new Map<string, ResolvedScheduleBlock[]>();
+    for (const dk of monthDateKeys) {
+      map.set(
+        dk,
+        resolveDaySchedule({
+          dateKey: dk,
+          templates,
+          instances,
+          electiveThreeName: profile?.electiveThreeName,
+        }).filter(
+          (b) => b.category !== 'break' && b.title !== 'Sleep' && b.status !== 'skipped'
+        )
+      );
+    }
+    return map;
+  }, [monthDateKeys, templates, instances, profile?.electiveThreeName]);
 
   const pickerAnchor = dateKeyToUtcDate(pickerMonthKey);
   const pickerDateKeys = useMemo(
@@ -260,9 +292,37 @@ export default function SchedulePage() {
     });
   }
 
+  function resetTemplateForm() {
+    setEditingTemplateId(null);
+    setTplTitle('');
+    setTplCode('');
+    setTplSource('college');
+    setTplCategory('class');
+    setTplStart('08:00');
+    setTplEnd('08:50');
+  }
+
   async function handleAddRecurringTemplate(e: React.FormEvent) {
     e.preventDefault();
     if (!tplTitle.trim()) return;
+    if (tplStart === tplEnd) {
+      toast('Start and end time cannot be the same', { tone: 'warning' });
+      return;
+    }
+    if (editingTemplateId) {
+      await updateScheduleTemplate(editingTemplateId, {
+        source: tplSource,
+        category: tplCategory,
+        dayOfWeek: tplDay,
+        subjectCode: tplCode.trim() || undefined,
+        title: tplTitle.trim(),
+        startTime: tplStart,
+        endTime: tplEnd,
+      });
+      resetTemplateForm();
+      toast('Recurring slot updated', { tone: 'success' });
+      return;
+    }
     await addScheduleTemplate({
       source: tplSource,
       category: tplCategory,
@@ -830,12 +890,7 @@ export default function SchedulePage() {
               {monthDateKeys.map((dk) => {
                 const d = dateKeyToUtcDate(dk);
                 const inMonth = d.getUTCMonth() === monthAnchor.getUTCMonth();
-                const blocks = resolveDaySchedule({
-                  dateKey: dk,
-                  templates,
-                  instances,
-                  electiveThreeName: profile?.electiveThreeName,
-                }).filter((b) => b.category !== 'break' && b.title !== 'Sleep');
+                const blocks = monthCellMap.get(dk) ?? [];
                 const collegeCount = blocks.filter((b) => b.source === 'college').length;
                 const isToday = dk === istNow.dateKey;
                 // Presentation-only: completion ratio for the tiny per-day bar.
@@ -1156,7 +1211,7 @@ export default function SchedulePage() {
         <div className="space-y-4">
           <p className="df-eyebrow flex items-center gap-1.5">
             <Repeat className="h-3 w-3" aria-hidden="true" />
-            New recurring slot
+            {editingTemplateId ? 'Edit recurring slot' : 'New recurring slot'}
           </p>
           <form onSubmit={handleAddRecurringTemplate} className="grid grid-cols-1 gap-2 rounded-2xl df-well p-3 sm:grid-cols-6">
             <Select
@@ -1219,10 +1274,32 @@ export default function SchedulePage() {
               onChange={(e) => setTplEnd(e.target.value)}
               aria-label="End time"
             />
-            <Button type="submit" variant="primary" size="sm" className="rounded-full">
-              <Plus className="h-3.5 w-3.5" />
-              Add Slot
-            </Button>
+            <div className="flex items-center gap-1.5 sm:col-span-6 sm:justify-end">
+              {editingTemplateId && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full"
+                  onClick={resetTemplateForm}
+                >
+                  Cancel
+                </Button>
+              )}
+              <Button type="submit" variant="primary" size="sm" className="rounded-full">
+                {editingTemplateId ? (
+                  <>
+                    <Check className="h-3.5 w-3.5" />
+                    Update Slot
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-3.5 w-3.5" />
+                    Add Slot
+                  </>
+                )}
+              </Button>
+            </div>
           </form>
 
           <div className="df-hairline" />
@@ -1232,7 +1309,10 @@ export default function SchedulePage() {
               .map((t) => (
                 <div
                   key={t.id}
-                  className="flex items-center justify-between gap-2 rounded-2xl df-well px-3.5 py-2.5 text-xs transition-all hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)]"
+                  className={cn(
+                    'flex items-center justify-between gap-2 rounded-2xl df-well px-3.5 py-2.5 text-xs transition-all hover:border-[var(--df-border-strong)] hover:bg-[var(--df-secondary)]',
+                    editingTemplateId === t.id && 'border-[#8F87FA]/60 bg-[#6D64F0]/10'
+                  )}
                 >
                   <div className="flex min-w-0 items-center gap-2">
                     <span
@@ -1247,15 +1327,38 @@ export default function SchedulePage() {
                       {t.title}
                     </span>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => void deleteScheduleTemplate(t.id)}
-                    aria-label={`Remove ${t.title}`}
-                    className="h-7 w-7 rounded-full text-[var(--df-error)] hover:bg-[var(--df-error)]/10"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setEditingTemplateId(t.id);
+                        setTplDay(t.dayOfWeek);
+                        setTplSource(t.source);
+                        setTplCategory(t.category);
+                        setTplCode(t.subjectCode ?? '');
+                        setTplTitle(t.title);
+                        setTplStart(t.startTime);
+                        setTplEnd(t.endTime);
+                      }}
+                      aria-label={`Edit ${t.title}`}
+                      className="h-7 w-7 rounded-full text-[var(--df-text-muted)] hover:text-[var(--df-accent-secondary)]"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        if (editingTemplateId === t.id) resetTemplateForm();
+                        void deleteScheduleTemplate(t.id);
+                      }}
+                      aria-label={`Remove ${t.title}`}
+                      className="h-7 w-7 rounded-full text-[var(--df-error)] hover:bg-[var(--df-error)]/10"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
               ))}
           </div>

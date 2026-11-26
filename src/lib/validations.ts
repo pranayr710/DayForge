@@ -41,29 +41,34 @@ export const dsaProblemFormSchema = z.object({
 
 export type DsaProblemFormValues = z.infer<typeof dsaProblemFormSchema>;
 
-export const customEventFormSchema = z.object({
-  title: z.string().trim().min(1, 'Event title is required').max(120),
-  category: z.enum([
-    'class',
-    'lab',
-    'mentoring',
-    'project',
-    'cir',
-    'break',
-    'routine',
-    'dsa',
-    'awareness',
-    'placement',
-    'career',
-    'personal',
-  ]),
-  subjectCode: z.string().trim().max(24).optional(),
-  location: z.string().trim().max(80).optional(),
-  dateKey: z.string().min(1, 'Date is required'),
-  startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
-  endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
-  notes: z.string().max(1000).optional(),
-});
+export const customEventFormSchema = z
+  .object({
+    title: z.string().trim().min(1, 'Event title is required').max(120),
+    category: z.enum([
+      'class',
+      'lab',
+      'mentoring',
+      'project',
+      'cir',
+      'break',
+      'routine',
+      'dsa',
+      'awareness',
+      'placement',
+      'career',
+      'personal',
+    ]),
+    subjectCode: z.string().trim().max(24).optional(),
+    location: z.string().trim().max(80).optional(),
+    dateKey: z.string().min(1, 'Date is required'),
+    startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
+    endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Use HH:MM format'),
+    notes: z.string().max(1000).optional(),
+  })
+  .refine((val) => val.startTime !== val.endTime, {
+    message: 'End time must differ from start time',
+    path: ['endTime'],
+  });
 
 export type CustomEventFormValues = z.infer<typeof customEventFormSchema>;
 

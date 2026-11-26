@@ -38,9 +38,9 @@ Full Home Screen app installation and offline caching (`dist/sw.js`) require **H
 ## How to Use DayForge (New User Guide)
 
 ### 1. Dashboard (`/`) — Your Command Center
-- **Now & Next Spotlight:** Shows the block you should be working on right now (live in IST or your configured timezone), time remaining, progress bar, and a **Focus Now** button, plus what comes up next.
-- **Daily Overview Rings:** Tracks **Tasks Completed**, **Focus Time Today**, and **Schedule Completion**.
-- **Today's Schedule Timeline:** Tick blocks off directly or click embedded quick-redirect pills (such as `daily.dev`, `Hacker News`, `GitHub Trending`, `takeUforward`, `LeetCode`, `NeetCode`, or today's YouTube channel).
+- **Now & Next Spotlight:** Shows the block you should be working on right now (live in IST or your configured timezone), automatically clears blocks already marked **Done / Skipped / Wasted**, handles late-night blocks crossing midnight (`23:30 → 01:00`), and provides a **Focus Now** button alongside what comes up next.
+- **Daily Overview Rings:** Tracks **Tasks Completed**, **Focus Time Today** (to the exact second), and **Schedule Completion** (swipeable compact cards on mobile, 3-column grid on desktop).
+- **Today's Schedule Timeline:** Tick blocks off directly or click embedded quick-redirect pills (such as `daily.dev`, `Hacker News`, `GitHub Trending`, `takeUforward`, `LeetCode`, `NeetCode`, or today's YouTube channel). On phones, shows a focused 5-block window around your active slot with a **Show full day** toggle.
 - **Today's Priorities & Quick-Add:** Add tasks due today in one line with category and priority, or launch Focus directly on any task.
 - **YouTube & Dev Redirects / Goals / Deadlines / Weekly Overview:** Quick access to today's 8:30 PM YouTube channel, long-term goal progress, upcoming dated deadlines, and 7-day completion bars.
 
@@ -58,14 +58,14 @@ Full Home Screen app installation and offline caching (`dist/sw.js`) require **H
   - If you **exceed the planned slot**, the timer continues running into **Overtime** (`+MM:SS`), notifies you gently, and records the full total time (including `+OT`) when you tap **Done**.
   - If you **stop partway through** (for example, `25m` out of `1h`), tap **Log Partial**—DayForge logs the exact duration and shows a **Partial · 25m/1h** indicator and progress bar on the slot.
   - Tap any slot's title or **Edit** button to open the **Activity Inspector**, where you can manually set **Slot Status** (`Planned`, `Partial`, `Done`, `Wasted`, `Skipped`), edit **Exact Time Worked** (minutes and seconds), reschedule just that date, add notes, or **Skip Today**.
-- **Custom & Recurring Slots:** Click **+ Add Event** for a one-off event, or **Edit Recurring Slots** to add/remove weekly repeating templates.
+- **Custom & Recurring Slots:** Click **+ Add Event** for a one-off event, or **Edit Recurring Slots** to add, edit inline, or remove weekly repeating templates (start and end times must differ to prevent accidental 24-hour blocks).
 
 ---
 
 ### 3. Focus Mode (Global Timer)
 - Launch Focus Mode from the header/sidebar (**Start Focus**), from a **Schedule** slot, or from any **Task**.
-- Choose presets (`25m`, `45m`, `60m`) or set a custom duration (`1–240m`), write session notes, and pause/resume anytime.
-- Active timer state is persisted locally in `localStorage` so refreshing the page or locking your phone screen won't lose an active countdown.
+- Choose presets (`25m`, `45m`, `60m`) or set a custom duration (`1–240m`), write session notes, and pause/resume anytime. Changing the target duration mid-session keeps your already-logged elapsed time intact.
+- Active timer state is persisted locally in `localStorage` so refreshing the page or locking your phone screen won't lose an active countdown. If you start Focus on a different item while an earlier timer has elapsed work, the previous progress is saved as **Partial** automatically instead of being lost.
 - If the timer reaches `00:00` while you're still working, it switches smoothly into **Overtime (`+MM:SS`)** and keeps tracking exact seconds until you stop or complete it.
 - Tap **Done** to log exact elapsed time and complete the linked slot/task, **Log Partial / Save Partial** to record progress without completing it, or **Finish Session** when running standalone.
 
@@ -94,7 +94,7 @@ Full Home Screen app installation and offline caching (`dist/sw.js`) require **H
 ---
 
 ### 7. Analytics & Settings (`/analytics`, `/settings`)
-- **Analytics:** Weekly, Monthly, and Long-Term (`2026–2028`) KPIs and charts computed strictly from your recorded sessions, tasks, DSA problems, schedule blocks (excluding skipped breaks), and milestones.
+- **Analytics:** Weekly, Monthly, and Long-Term (`2026–2028`) KPIs and charts computed strictly from your recorded sessions (to the exact second), tasks, DSA problems, schedule slot outcomes (**Done / Partial / Wasted**, excluding skipped slots), and milestones.
 - **Settings:**
   - **Theme:** Click **Dark**, **Light**, or **System** tiles directly (or use the dropdown) to switch immediately.
   - **Profile & Timetable Preferences:** Customize your name, semester, **Professional Elective III** course label (updates the timetable dynamically), timezone, and week start day (`Monday` or `Sunday`).

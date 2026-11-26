@@ -106,6 +106,8 @@ export default function AnalyticsPage() {
         (b) => b.category !== 'break' && b.title !== 'Sleep' && b.status !== 'skipped'
       );
       const blocksDone = dayBlocks.filter((b) => b.completed).length;
+      const blocksPartial = dayBlocks.filter((b) => b.status === 'partial').length;
+      const blocksWasted = dayBlocks.filter((b) => b.status === 'wasted').length;
 
       return {
         day: getShortDayLabel(dk),
@@ -113,9 +115,24 @@ export default function AnalyticsPage() {
         tasksDone,
         dsaSolved,
         blocksDone,
+        blocksPartial,
+        blocksWasted,
       };
     });
   }, [weekKeys, focusSessions, tasks, dsaProblems, templates, instances, profile?.electiveThreeName, timezone]);
+
+  const weeklyBlockBreakdown = useMemo(
+    () =>
+      weeklyChartData.reduce(
+        (acc, d) => ({
+          done: acc.done + d.blocksDone,
+          partial: acc.partial + d.blocksPartial,
+          wasted: acc.wasted + d.blocksWasted,
+        }),
+        { done: 0, partial: 0, wasted: 0 }
+      ),
+    [weeklyChartData]
+  );
 
   const weekStart = weekKeys[0] ?? istNow.dateKey;
   // -29 so the inclusive window today..monthStart spans exactly 30 days.
@@ -388,6 +405,17 @@ export default function AnalyticsPage() {
                           <Bar dataKey="tasksDone" name="Tasks Done" fill="url(#dfBarTasks)" radius={[6, 6, 0, 0]} maxBarSize={22} />
                         </BarChart>
                       </ResponsiveContainer>
+                    </div>
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
+                      <span className="rounded-full border border-[#22C55E]/30 bg-[#22C55E]/10 px-2.5 py-0.5 font-mono-tabular text-[var(--df-success)]">
+                        {weeklyBlockBreakdown.done} slots done
+                      </span>
+                      <span className="rounded-full border border-[#F0B455]/30 bg-[#F0B455]/10 px-2.5 py-0.5 font-mono-tabular text-[var(--df-warning)]">
+                        {weeklyBlockBreakdown.partial} partial
+                      </span>
+                      <span className="rounded-full border border-[#F06A6A]/30 bg-[#F06A6A]/10 px-2.5 py-0.5 font-mono-tabular text-[var(--df-error)]">
+                        {weeklyBlockBreakdown.wasted} wasted
+                      </span>
                     </div>
                   </>
                 )}

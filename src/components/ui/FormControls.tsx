@@ -2,7 +2,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 const FIELD_BASE =
-  'w-full rounded-xl border border-[var(--df-border)] bg-[var(--df-inset)] backdrop-blur-xl text-sm text-[var(--df-text)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.12)] placeholder:text-[var(--df-text-faint)] transition-[border-color,box-shadow,background-color] duration-200 hover:border-[var(--df-border-strong)] focus-visible:outline-none focus-visible:border-[#8F87FA]/70 focus-visible:bg-[var(--df-secondary)] focus-visible:shadow-[0_0_0_4px_rgba(109,100,240,0.18),0_0_24px_-6px_rgba(109,100,240,0.55)] disabled:opacity-50';
+  'w-full rounded-xl border border-[var(--df-border)] bg-[var(--df-inset)] backdrop-blur-xl text-base sm:text-sm text-[var(--df-text)] shadow-[inset_0_1px_2px_rgba(0,0,0,0.12)] placeholder:text-[var(--df-text-faint)] transition-[border-color,box-shadow,background-color] duration-200 hover:border-[var(--df-border-strong)] focus-visible:outline-none focus-visible:border-[#8F87FA]/70 focus-visible:bg-[var(--df-secondary)] focus-visible:shadow-[0_0_0_4px_rgba(109,100,240,0.18),0_0_24px_-6px_rgba(109,100,240,0.55)] disabled:opacity-50';
 
 export const Input = React.forwardRef<
   HTMLInputElement,

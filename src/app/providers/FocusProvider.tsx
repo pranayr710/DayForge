@@ -206,51 +206,115 @@ export function FocusProvider({ children }: { children: React.ReactNode }) {
     };
   }, [isRunning, plannedMinutes, toast]);
 
-  const openFocus = useCallback((input?: StartFocusInput) => {
-    const slotDuration = input?.scheduleBlock
-      ? Math.max(
-          5,
-          Math.min(
-            240,
-            input.scheduleBlock.endMinutes - input.scheduleBlock.startMinutes
+  const openFocus = useCallback(
+    (input?: StartFocusInput) => {
+      if (!input) {
+        setIsOpen(true);
+        return;
+      }
+
+      const liveNow =
+        runStartRef.current != null ? (Date.now() - runStartRef.current) / 1000 : 0;
+      const activeElapsed = Math.min(
+        Math.round(baseElapsedRef.current + liveNow),
+        MAX_SESSION_SECONDS
+      );
+
+      const isDifferentItem =
+        (input.taskId && input.taskId !== taskId) ||
+        (input.scheduleBlock &&
+          (input.scheduleBlock.dateKey !== scheduleBlock?.dateKey ||
+            input.scheduleBlock.templateId !== scheduleBlock?.templateId ||
+            input.scheduleBlock.instanceId !== scheduleBlock?.instanceId)) ||
+        (!input.taskId && !input.scheduleBlock && input.taskTitle !== taskTitle);
+
+      if (activeElapsed > 0 && isDifferentItem) {
+        const prevEndedAt = new Date().toISOString();
+        const prevStartedAt = startedAtRef.current ?? prevEndedAt;
+        const { dateKey: prevDateKey } = getNowParts(timezone);
+        const prevBlock = scheduleBlock;
+        const prevTitle = taskTitle;
+        const prevTaskId = taskId;
+        const prevPlanned = plannedMinutes;
+        const prevObjective = objective.trim() || undefined;
+        const prevNotes = notes.trim() || undefined;
+
+        void (async () => {
+          await recordFocusSession({
+            taskId: prevTaskId,
+            scheduleDateKey: prevBlock?.dateKey,
+            scheduleTemplateId: prevBlock?.templateId,
+            scheduleInstanceId: prevBlock?.instanceId,
+            taskTitle: prevTitle,
+            objective: prevObjective,
+            plannedMinutes: prevPlanned,
+            actualSeconds: activeElapsed,
+            markedCompleted: false,
+            completedEarly: false,
+            notes: prevNotes,
+            startedAt: prevStartedAt,
+            endedAt: prevEndedAt,
+            dateKey: prevDateKey,
+          });
+          if (prevBlock) {
+            await setScheduleBlockStatus(prevBlock, 'partial', {
+              addSeconds: activeElapsed,
+              notes: prevNotes,
+            });
+          }
+        })();
+
+        toast('Previous focus saved as partial', {
+          description: `Logged ${formatDurationSeconds(activeElapsed)} for "${prevTitle}" before switching.`,
+          tone: 'info',
+        });
+      }
+
+      const slotDuration = input.scheduleBlock
+        ? Math.max(
+            5,
+            Math.min(
+              240,
+              input.scheduleBlock.endMinutes - input.scheduleBlock.startMinutes
+            )
           )
-        )
-      : undefined;
-    const mins = input?.minutes ?? slotDuration ?? 25;
-    const startImmediately = Boolean(input);
-    const nowMs = Date.now();
-    const nowIso = new Date(nowMs).toISOString();
+        : undefined;
+      const mins = input.minutes ?? slotDuration ?? 25;
+      const nowMs = Date.now();
+      const nowIso = new Date(nowMs).toISOString();
 
-    setTaskId(input?.taskId);
-    setScheduleBlock(input?.scheduleBlock);
-    setTaskTitle(input?.taskTitle ?? 'Focused Work');
-    setObjective(input?.objective ?? '');
-    setPlannedMinutes(mins);
-    setRemainingSeconds(mins * 60);
-    setElapsedSeconds(0);
-    setOvertimeSeconds(0);
-    setNotes('');
-    startedAtRef.current = nowIso;
-    baseElapsedRef.current = 0;
-    runStartRef.current = startImmediately ? nowMs : null;
-    overtimeNotifiedRef.current = false;
-    setIsRunning(startImmediately);
-    setIsOpen(true);
+      setTaskId(input.taskId);
+      setScheduleBlock(input.scheduleBlock);
+      setTaskTitle(input.taskTitle);
+      setObjective(input.objective ?? '');
+      setPlannedMinutes(mins);
+      setRemainingSeconds(mins * 60);
+      setElapsedSeconds(0);
+      setOvertimeSeconds(0);
+      setNotes('');
+      startedAtRef.current = nowIso;
+      baseElapsedRef.current = 0;
+      runStartRef.current = nowMs;
+      overtimeNotifiedRef.current = false;
+      setIsRunning(true);
+      setIsOpen(true);
 
-    savePersistedFocus({
-      isOpen: true,
-      isRunning: startImmediately,
-      taskId: input?.taskId,
-      scheduleBlock: input?.scheduleBlock,
-      taskTitle: input?.taskTitle ?? 'Focused Work',
-      objective: input?.objective ?? '',
-      plannedMinutes: mins,
-      notes: '',
-      startedAt: nowIso,
-      runStartMs: startImmediately ? nowMs : null,
-      baseElapsedSec: 0,
-    });
-  }, []);
+      savePersistedFocus({
+        isOpen: true,
+        isRunning: true,
+        taskId: input.taskId,
+        scheduleBlock: input.scheduleBlock,
+        taskTitle: input.taskTitle,
+        objective: input.objective ?? '',
+        plannedMinutes: mins,
+        notes: '',
+        startedAt: nowIso,
+        runStartMs: nowMs,
+        baseElapsedSec: 0,
+      });
+    },
+    [notes, objective, plannedMinutes, scheduleBlock, taskId, taskTitle, timezone, toast]
+  );
 
   const closeFocus = useCallback(() => {
     setIsOpen(false);
@@ -274,14 +338,16 @@ export function FocusProvider({ children }: { children: React.ReactNode }) {
 
   const setDurationMinutes = useCallback((mins: number) => {
     const safe = Math.max(1, Math.min(240, Math.round(mins)));
+    const live =
+      runStartRef.current != null ? (Date.now() - runStartRef.current) / 1000 : 0;
+    const currentElapsed = Math.floor(
+      Math.min(baseElapsedRef.current + live, MAX_SESSION_SECONDS)
+    );
+    const nextTarget = safe * 60;
     setPlannedMinutes(safe);
-    setRemainingSeconds(safe * 60);
-    setElapsedSeconds(0);
-    setOvertimeSeconds(0);
-    baseElapsedRef.current = 0;
-    runStartRef.current = null;
-    overtimeNotifiedRef.current = false;
-    setIsRunning(false);
+    setRemainingSeconds(Math.max(0, nextTarget - currentElapsed));
+    setOvertimeSeconds(Math.max(0, currentElapsed - nextTarget));
+    overtimeNotifiedRef.current = currentElapsed >= nextTarget;
   }, []);
 
   const toggleRun = useCallback(() => {

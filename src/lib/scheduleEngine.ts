@@ -167,19 +167,39 @@ export function resolveDaySchedule(params: {
 
 export function findCurrentAndNextBlocks(
   blocks: ResolvedScheduleBlock[],
-  minutesFromMidnight: number
+  minutesFromMidnight: number,
+  yesterdayBlocks: ResolvedScheduleBlock[] = []
 ): {
   currentBlock: ResolvedScheduleBlock | null;
   nextBlock: ResolvedScheduleBlock | null;
   remainingMinutes: number;
 } {
-  const normalizedNow =
-    minutesFromMidnight < 240 ? minutesFromMidnight + 1440 : minutesFromMidnight;
+  const isFinishedOrInactive = (b: ResolvedScheduleBlock) =>
+    b.completed || b.status === 'done' || b.status === 'skipped' || b.status === 'wasted';
 
   let currentBlock: ResolvedScheduleBlock | null = null;
   let nextBlock: ResolvedScheduleBlock | null = null;
+  let currentEndNormalized = 0;
+
+  // Between 00:00 and 03:59, check any midnight-crossing block carried over from yesterday (e.g. 23:30–01:00).
+  if (minutesFromMidnight < 240 && yesterdayBlocks.length > 0) {
+    for (const block of yesterdayBlocks) {
+      if (!block.crossesMidnight || isFinishedOrInactive(block)) continue;
+      const tailEnd = block.endMinutes - 1440;
+      if (minutesFromMidnight < tailEnd) {
+        currentBlock = block;
+        currentEndNormalized = tailEnd + 1440;
+        break;
+      }
+    }
+  }
+
+  const normalizedNow =
+    minutesFromMidnight < 240 ? minutesFromMidnight + 1440 : minutesFromMidnight;
 
   for (const block of blocks) {
+    if (isFinishedOrInactive(block)) continue;
+
     const start =
       block.startMinutes < 240 ? block.startMinutes + 1440 : block.startMinutes;
     const end =
@@ -187,6 +207,7 @@ export function findCurrentAndNextBlocks(
 
     if (normalizedNow >= start && normalizedNow < end && !currentBlock) {
       currentBlock = block;
+      currentEndNormalized = end;
       continue;
     }
 
@@ -196,12 +217,7 @@ export function findCurrentAndNextBlocks(
   }
 
   const remainingMinutes = currentBlock
-    ? Math.max(
-        0,
-        (currentBlock.endMinutes < 240
-          ? currentBlock.endMinutes + 1440
-          : currentBlock.endMinutes) - normalizedNow
-      )
+    ? Math.max(0, currentEndNormalized - normalizedNow)
     : 0;
 
   return { currentBlock, nextBlock, remainingMinutes };

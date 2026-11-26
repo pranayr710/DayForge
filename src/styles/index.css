@@ -21,39 +21,39 @@
     --df-secondary: rgba(255, 255, 255, 0.62);
     --df-elevated: rgba(255, 255, 255, 0.82);
     --df-solid-surface: #FFFFFF;
-    --df-inset: rgba(15, 23, 42, 0.035);
-    --df-border: rgba(15, 23, 42, 0.08);
-    --df-border-strong: rgba(15, 23, 42, 0.15);
+    --df-inset: rgba(15, 23, 42, 0.045);
+    --df-border: rgba(15, 23, 42, 0.11);
+    --df-border-strong: rgba(15, 23, 42, 0.20);
     --df-specular: rgba(255, 255, 255, 0.95);
-    --df-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 12px 40px -18px rgba(56, 48, 163, 0.18);
+    --df-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 12px 40px -18px rgba(56, 48, 163, 0.18);
     --df-shadow-lg: 0 30px 80px -30px rgba(56, 48, 163, 0.35);
 
     /* Aurora palette */
-    --df-accent: #635BDB;
-    --df-accent-secondary: #8178F5;
-    --df-violet: #A78BFA;
-    --df-cyan: #0891B2;
-    --df-pink: #DB2777;
-    --df-mint: #059669;
-    --df-success: #16A34A;
-    --df-warning: #D97706;
-    --df-error: #DC2626;
+    --df-accent: #554CD4;
+    --df-accent-secondary: #5145C8;
+    --df-violet: #7C3AED;
+    --df-cyan: #0E7490;
+    --df-pink: #BE185D;
+    --df-mint: #047857;
+    --df-success: #15803D;
+    --df-warning: #B45309;
+    --df-error: #B91C1C;
 
     /* Glass edge gradient (hairline) */
-    --df-edge-a: rgba(99, 91, 219, 0.28);
-    --df-edge-b: rgba(15, 23, 42, 0.05);
-    --df-edge-c: rgba(8, 145, 178, 0.18);
+    --df-edge-a: rgba(99, 91, 219, 0.32);
+    --df-edge-b: rgba(15, 23, 42, 0.08);
+    --df-edge-c: rgba(8, 145, 178, 0.22);
 
     /* Aurora blobs */
-    --df-aurora-1: rgba(129, 120, 245, 0.32);
-    --df-aurora-2: rgba(34, 211, 238, 0.20);
-    --df-aurora-3: rgba(244, 114, 182, 0.16);
+    --df-aurora-1: rgba(129, 120, 245, 0.26);
+    --df-aurora-2: rgba(34, 211, 238, 0.18);
+    --df-aurora-3: rgba(244, 114, 182, 0.14);
     --df-aurora-4: rgba(52, 211, 153, 0.12);
-    --df-grain-opacity: 0.035;
+    --df-grain-opacity: 0.03;
 
     --df-text: #0E1020;
-    --df-text-muted: #545B6E;
-    --df-text-faint: #8A90A2;
+    --df-text-muted: #434A5E;
+    --df-text-faint: #646B80;
     color-scheme: light;
   }
 
@@ -316,8 +316,10 @@ html.dark .df-aurora__blob {
   z-index: 0;
 }
 
-.df-spotlight:hover::after {
-  opacity: 1;
+@media (hover: hover) and (pointer: fine) {
+  .df-spotlight:hover::after {
+    opacity: 1;
+  }
 }
 
 html:not(.dark) .df-spotlight::after {

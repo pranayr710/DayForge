@@ -6,8 +6,9 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   interactive?: boolean;
 }
 
-/** Track the pointer so the glass surface can paint a soft spotlight. */
+/** Track mouse pointer only so touch taps never leave a stuck spotlight glow. */
 function trackSpotlight(e: React.PointerEvent<HTMLDivElement>) {
+  if (e.pointerType !== 'mouse') return;
   const el = e.currentTarget;
   const rect = el.getBoundingClientRect();
   el.style.setProperty('--mx', `${e.clientX - rect.left}px`);

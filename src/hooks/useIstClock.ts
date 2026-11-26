@@ -7,11 +7,16 @@ export function useIstClock(timezone = 'Asia/Kolkata'): ZonedNowParts {
   );
 
   useEffect(() => {
-    setNowParts(getNowParts(timezone));
-    const timer = window.setInterval(() => {
-      setNowParts(getNowParts(timezone));
-    }, 30000);
-    return () => window.clearInterval(timer);
+    const refresh = () => setNowParts(getNowParts(timezone));
+    refresh();
+    const timer = window.setInterval(refresh, 30000);
+    document.addEventListener('visibilitychange', refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', refresh);
+      window.removeEventListener('focus', refresh);
+    };
   }, [timezone]);
 
   return nowParts;

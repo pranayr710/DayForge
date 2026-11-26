@@ -35,6 +35,7 @@ import {
   toggleTaskCompleted,
 } from '@/services/storage/repositories';
 import {
+  addDaysToDateKey,
   daysBetweenDateKeys,
   getDateKeyFromIso,
   formatDurationMinutes,
@@ -115,6 +116,7 @@ export default function DashboardPage() {
   const [quickTitle, setQuickTitle] = useState('');
   const [quickCategory, setQuickCategory] = useState<TaskCategory>('DSA');
   const [quickPriority, setQuickPriority] = useState<TaskPriority>('medium');
+  const [showAllScheduleOnMobile, setShowAllScheduleOnMobile] = useState(false);
 
   const todaySchedule = useMemo(
     () =>
@@ -127,9 +129,25 @@ export default function DashboardPage() {
     [istNow.dateKey, templates, instances, profile?.electiveThreeName]
   );
 
+  const yesterdaySchedule = useMemo(
+    () =>
+      resolveDaySchedule({
+        dateKey: addDaysToDateKey(istNow.dateKey, -1),
+        templates,
+        instances,
+        electiveThreeName: profile?.electiveThreeName,
+      }),
+    [istNow.dateKey, templates, instances, profile?.electiveThreeName]
+  );
+
   const { currentBlock, nextBlock, remainingMinutes } = useMemo(
-    () => findCurrentAndNextBlocks(todaySchedule, istNow.minutesFromMidnight),
-    [todaySchedule, istNow.minutesFromMidnight]
+    () =>
+      findCurrentAndNextBlocks(
+        todaySchedule,
+        istNow.minutesFromMidnight,
+        yesterdaySchedule
+      ),
+    [todaySchedule, istNow.minutesFromMidnight, yesterdaySchedule]
   );
 
   const actionableTodayBlocks = useMemo(
@@ -494,8 +512,11 @@ export default function DashboardPage() {
       </Reveal>
 
       {/* ============ DAILY OVERVIEW STATS ============ */}
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-3" aria-label="Daily overview">
-        <Reveal delay={0.12}>
+      <section
+        className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:gap-4 sm:overflow-visible sm:pb-0"
+        aria-label="Daily overview"
+      >
+        <Reveal delay={0.12} className="min-w-[235px] shrink-0 snap-start sm:min-w-0">
           <Card interactive className="h-full">
             <CardContent className="flex items-center gap-4 pt-5">
               <ProgressRing
@@ -522,7 +543,7 @@ export default function DashboardPage() {
           </Card>
         </Reveal>
 
-        <Reveal delay={0.18}>
+        <Reveal delay={0.18} className="min-w-[235px] shrink-0 snap-start sm:min-w-0">
           <Card interactive className="h-full">
             <CardContent className="flex items-center gap-4 pt-5">
               <div className="relative flex h-[76px] w-[76px] shrink-0 items-center justify-center">
@@ -549,7 +570,7 @@ export default function DashboardPage() {
           </Card>
         </Reveal>
 
-        <Reveal delay={0.24}>
+        <Reveal delay={0.24} className="min-w-[235px] shrink-0 snap-start sm:min-w-0">
           <Card interactive className="h-full">
             <CardContent className="flex items-center gap-4 pt-5">
               <ProgressRing
@@ -610,13 +631,39 @@ export default function DashboardPage() {
                     description="Add a custom event or enable recurring templates in Schedule."
                   />
                 ) : (
+                  <>
                   <ol className="relative">
                     {/* Timeline spine */}
                     <span
                       aria-hidden="true"
                       className="absolute left-[7px] top-2 bottom-2 w-px bg-[linear-gradient(180deg,rgba(143,135,250,0.6),var(--df-border)_30%,var(--df-border)_70%,rgba(94,231,247,0.5))]"
                     />
-                    {todaySchedule.map((block, idx) => {
+                    {(() => {
+                      const activeIdx = currentBlock
+                        ? todaySchedule.findIndex(
+                            (b) =>
+                              b.templateId === currentBlock.templateId &&
+                              b.startTime === currentBlock.startTime &&
+                              b.title === currentBlock.title
+                          )
+                        : todaySchedule.findIndex(
+                            (b) =>
+                              !b.completed &&
+                              b.status !== 'skipped' &&
+                              b.category !== 'break' &&
+                              b.title !== 'Sleep'
+                          );
+                      const windowStart =
+                        activeIdx >= 0
+                          ? Math.min(activeIdx, Math.max(0, todaySchedule.length - 5))
+                          : Math.max(0, todaySchedule.length - 5);
+                      const windowEnd = windowStart + 5;
+
+                      return todaySchedule.map((block, idx) => {
+                      const hideOnCompactMobile =
+                        !showAllScheduleOnMobile &&
+                        todaySchedule.length > 5 &&
+                        (idx < windowStart || idx >= windowEnd);
                       const style = CATEGORY_ACCENT[block.category];
                       const slotDuration = Math.max(1, block.endMinutes - block.startMinutes);
                       const slotDurationSeconds = slotDuration * 60;
@@ -638,7 +685,10 @@ export default function DashboardPage() {
                           whileInView={{ opacity: 1, x: 0 }}
                           viewport={{ once: true }}
                           transition={{ duration: 0.4, delay: reduced ? 0 : Math.min(idx * 0.03, 0.4), ease: [0.22, 1, 0.36, 1] }}
-                          className="relative flex items-start gap-3 py-1"
+                          className={cn(
+                            'relative items-start gap-3 py-1',
+                            hideOnCompactMobile ? 'hidden lg:flex' : 'flex'
+                          )}
                         >
                           {/* Node / toggle */}
                           <button
@@ -775,8 +825,22 @@ export default function DashboardPage() {
                           </div>
                         </motion.li>
                       );
-                    })}
+                    });
+                    })()}
                   </ol>
+                  {todaySchedule.length > 5 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="mt-3 w-full rounded-full lg:hidden"
+                      onClick={() => setShowAllScheduleOnMobile((v) => !v)}
+                    >
+                      {showAllScheduleOnMobile
+                        ? 'Show compact view'
+                        : `Show full day (${todaySchedule.length} blocks)`}
+                    </Button>
+                  )}
+                  </>
                 )}
               </CardContent>
             </Card>
@@ -892,12 +956,12 @@ export default function DashboardPage() {
                     aria-label="Quick add task title"
                     className="flex-1 border-transparent bg-transparent shadow-none"
                   />
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Select
                       value={quickCategory}
                       onChange={(e) => setQuickCategory(e.target.value as TaskCategory)}
                       aria-label="Quick add task category"
-                      className="w-36"
+                      className="min-w-[130px] flex-1 sm:w-36 sm:flex-none"
                     >
                       {QUICK_CATEGORIES.map((c) => (
                         <option key={c} value={c}>
@@ -909,7 +973,7 @@ export default function DashboardPage() {
                       value={quickPriority}
                       onChange={(e) => setQuickPriority(e.target.value as TaskPriority)}
                       aria-label="Quick add task priority"
-                      className="w-24"
+                      className="w-24 shrink-0"
                     >
                       <option value="high">High</option>
                       <option value="medium">Medium</option>
