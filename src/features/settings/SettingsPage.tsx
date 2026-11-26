@@ -39,7 +39,7 @@ import type { ThemeMode } from '@/types';
 const ICON_CHIP =
   'flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#8F87FA]/30 bg-[#6D64F0]/12 text-[var(--df-accent-secondary)]';
 
-/** Purely decorative preview of the theme options (selection still happens via the Select). */
+/** Theme options synced with both the Select dropdown and the quick-switch tiles. */
 const THEME_PREVIEW: { value: ThemeMode; label: string; icon: typeof Moon; swatch: string }[] = [
   { value: 'dark', label: 'Dark', icon: Moon, swatch: 'bg-[linear-gradient(135deg,#1B1D33,#0B0C16)]' },
   { value: 'light', label: 'Light', icon: Sun, swatch: 'bg-[linear-gradient(135deg,#FFFFFF,#E7E8F3)]' },
@@ -220,19 +220,23 @@ export default function SettingsPage() {
                       <option value="system">System</option>
                     </Select>
                   </div>
-                  {/* Decorative preview of the active theme */}
-                  <div aria-hidden="true" className="flex items-center gap-2">
+                  {/* Interactive quick-switch theme tiles */}
+                  <div role="group" aria-label="Theme mode" className="flex items-center gap-2">
                     {THEME_PREVIEW.map((opt) => {
                       const active = theme === opt.value;
                       const Icon = opt.icon;
                       return (
-                        <div
+                        <button
                           key={opt.value}
+                          type="button"
+                          onClick={() => void setTheme(opt.value)}
+                          aria-pressed={active}
+                          aria-label={`Switch theme to ${opt.label}`}
                           className={cn(
-                            'flex flex-col items-center gap-1 rounded-xl border p-1.5 transition-all duration-300',
+                            'flex flex-col items-center gap-1 rounded-xl border p-1.5 transition-all duration-300 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8F87FA]',
                             active
                               ? 'border-[#8F87FA]/60 bg-[#6D64F0]/10 shadow-[0_0_20px_-8px_rgba(109,100,240,0.9)]'
-                              : 'border-[var(--df-border)] opacity-60'
+                              : 'border-[var(--df-border)] opacity-60 hover:opacity-100 hover:border-[var(--df-border-strong)]'
                           )}
                         >
                           <span
@@ -256,7 +260,7 @@ export default function SettingsPage() {
                           >
                             {opt.label}
                           </span>
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
