@@ -116,6 +116,8 @@ export default function SchedulePage() {
   const [inspectorNotes, setInspectorNotes] = useState('');
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [templatesModalOpen, setTemplatesModalOpen] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [pickerMonthKey, setPickerMonthKey] = useState<string>(() => istNow.dateKey);
 
   const [tplDay, setTplDay] = useState<number>(1);
   const [tplTitle, setTplTitle] = useState('');
@@ -175,6 +177,22 @@ export default function SchedulePage() {
       ),
     [monthAnchor, profile?.weekStartsOn]
   );
+
+  const pickerAnchor = dateKeyToUtcDate(pickerMonthKey);
+  const pickerDateKeys = useMemo(
+    () =>
+      getMonthCalendarDateKeys(
+        pickerAnchor.getUTCFullYear(),
+        pickerAnchor.getUTCMonth(),
+        profile?.weekStartsOn ?? 'monday'
+      ),
+    [pickerAnchor, profile?.weekStartsOn]
+  );
+
+  function openDatePicker() {
+    setPickerMonthKey(`${selectedDateKey.slice(0, 7)}-01`);
+    setDatePickerOpen(true);
+  }
 
   function openInspector(block: ResolvedScheduleBlock) {
     setSelectedBlock(block);
@@ -312,13 +330,21 @@ export default function SchedulePage() {
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  'h-8 rounded-full px-3',
-                  selectedDateKey === istNow.dateKey &&
-                    'text-[var(--df-accent-secondary)] shadow-[inset_0_0_0_1px_rgba(143,135,250,0.35)]'
+                  'h-8 gap-1.5 rounded-full px-3 text-xs font-medium',
+                  selectedDateKey === istNow.dateKey
+                    ? 'text-[var(--df-accent-secondary)] shadow-[inset_0_0_0_1px_rgba(143,135,250,0.35)]'
+                    : 'text-[var(--df-text)]'
                 )}
-                onClick={() => setSelectedDateKey(istNow.dateKey)}
+                onClick={openDatePicker}
+                aria-label="Open calendar date picker"
+                aria-expanded={datePickerOpen}
               >
-                Today
+                <CalendarDays className="h-3.5 w-3.5 text-[var(--df-accent-secondary)]" aria-hidden="true" />
+                <span className="font-mono-tabular whitespace-nowrap">
+                  {selectedDateKey === istNow.dateKey
+                    ? `Today · ${getShortDayLabel(selectedDateKey)}, ${formatShortDateLabel(selectedDateKey)}`
+                    : `${getShortDayLabel(selectedDateKey)}, ${formatShortDateLabel(selectedDateKey)}`}
+                </span>
               </Button>
               <Button
                 variant="ghost"
@@ -330,12 +356,6 @@ export default function SchedulePage() {
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-            <span className="inline-flex items-center gap-2 rounded-full px-2 py-1 text-xs font-medium text-[var(--df-text)]">
-              <CalendarDays className="h-3.5 w-3.5 text-[var(--df-accent-secondary)]" aria-hidden="true" />
-              <span className="font-mono-tabular">
-                {getShortDayLabel(selectedDateKey)}, {formatShortDateLabel(selectedDateKey)}
-              </span>
-            </span>
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
@@ -1104,6 +1124,102 @@ export default function SchedulePage() {
                   </Button>
                 </div>
               ))}
+          </div>
+        </div>
+      </Modal>
+
+      {/* Date Picker Calendar Modal */}
+      <Modal
+        open={datePickerOpen}
+        onClose={() => setDatePickerOpen(false)}
+        title="Jump to Date"
+        description="Pick any date from the calendar to view its schedule."
+        maxWidthClass="max-w-sm"
+      >
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1 rounded-full df-well p-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={() => setPickerMonthKey((cur) => shiftMonthDateKey(cur, -1))}
+                aria-label="Previous month"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="min-w-[126px] px-2 text-center text-xs font-semibold text-[var(--df-text)]">
+                {new Intl.DateTimeFormat('en-IN', {
+                  timeZone: 'UTC',
+                  month: 'long',
+                  year: 'numeric',
+                }).format(pickerAnchor)}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={() => setPickerMonthKey((cur) => shiftMonthDateKey(cur, 1))}
+                aria-label="Next month"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <Button
+              variant={selectedDateKey === istNow.dateKey ? 'secondary' : 'primary'}
+              size="sm"
+              className="rounded-full"
+              onClick={() => {
+                setSelectedDateKey(istNow.dateKey);
+                setDatePickerOpen(false);
+              }}
+            >
+              Today
+            </Button>
+          </div>
+
+          <div className="df-eyebrow grid grid-cols-7 gap-1 text-center">
+            {(profile?.weekStartsOn === 'sunday'
+              ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+              : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            ).map((d) => (
+              <div key={d} className="py-1">
+                {d}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {pickerDateKeys.map((dk) => {
+              const d = dateKeyToUtcDate(dk);
+              const inMonth = d.getUTCMonth() === pickerAnchor.getUTCMonth();
+              const isToday = dk === istNow.dateKey;
+              const isSelected = dk === selectedDateKey;
+              return (
+                <button
+                  key={dk}
+                  type="button"
+                  onClick={() => {
+                    setSelectedDateKey(dk);
+                    setDatePickerOpen(false);
+                  }}
+                  aria-label={dk}
+                  aria-pressed={isSelected}
+                  className={cn(
+                    'flex h-10 w-full items-center justify-center rounded-xl font-mono-tabular text-xs font-medium transition-all cursor-pointer',
+                    isSelected
+                      ? 'bg-[linear-gradient(135deg,#7B72F6,#5145C8)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_8px_18px_-6px_rgba(109,100,240,0.85)]'
+                      : isToday
+                        ? 'border border-[#8F87FA]/60 bg-[#6D64F0]/12 text-[var(--df-accent-secondary)]'
+                        : 'border border-transparent text-[var(--df-text)] hover:border-[var(--df-border-strong)] hover:bg-[var(--df-inset)]',
+                    !inMonth && !isSelected && 'opacity-35'
+                  )}
+                >
+                  {d.getUTCDate()}
+                </button>
+              );
+            })}
           </div>
         </div>
       </Modal>
